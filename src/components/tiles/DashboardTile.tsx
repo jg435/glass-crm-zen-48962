@@ -87,7 +87,7 @@ const DashboardTile = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className="grid grid-cols-2 gap-3 mb-3 overflow-auto custom-scrollbar">
         {kpis.map((kpi) => (
           <Card key={kpi.label} className="p-3 bg-white/60 border-white/40">
             <div className="flex items-start justify-between">
@@ -101,7 +101,7 @@ const DashboardTile = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 flex-1">
+      <div className="grid grid-cols-2 gap-3 flex-1 overflow-auto custom-scrollbar">
         <Card className="p-3 bg-white/60 border-white/40">
           <h3 className="text-xs font-medium mb-2">Sales Funnel</h3>
           <div className="space-y-1.5">
