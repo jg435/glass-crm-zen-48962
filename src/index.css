@@ -95,11 +95,12 @@ All colors MUST be HSL.
   
   /* Glassmorphism utilities */
   .glass-tile {
-    @apply bg-white/80 backdrop-blur-xl border border-white/30 rounded-[24px] shadow-[0_4px_16px_rgba(0,0,0,0.08)];
+    @apply backdrop-blur-xl border border-white/30 rounded-[24px] shadow-[0_4px_16px_rgba(0,0,0,0.08)];
+    background-color: rgba(255, 255, 255, var(--tile-opacity, 0.85));
   }
   
-  .custom-tile-bg > * {
-    opacity: var(--tile-opacity, 1);
+  .custom-tile-bg {
+    background-color: rgba(255, 255, 255, var(--tile-opacity, 0.85)) !important;
   }
   
   .hover-scale {
@@ -108,33 +109,47 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
-  /* Tile gradient backgrounds */
+  /* Tile gradient backgrounds with opacity support */
   .gradient-dashboard {
-    background: linear-gradient(135deg, hsl(var(--gradient-dashboard-from)), hsl(var(--gradient-dashboard-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-dashboard-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-dashboard-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-contacts {
-    background: linear-gradient(135deg, hsl(var(--gradient-contacts-from)), hsl(var(--gradient-contacts-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-contacts-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-contacts-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-deals {
-    background: linear-gradient(135deg, hsl(var(--gradient-deals-from)), hsl(var(--gradient-deals-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-deals-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-deals-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-followups {
-    background: linear-gradient(135deg, hsl(var(--gradient-followups-from)), hsl(var(--gradient-followups-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-followups-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-followups-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-calendar {
-    background: linear-gradient(135deg, hsl(var(--gradient-calendar-from)), hsl(var(--gradient-calendar-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-calendar-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-calendar-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-ai {
-    background: linear-gradient(135deg, hsl(var(--gradient-ai-from)), hsl(var(--gradient-ai-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-ai-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-ai-to), var(--tile-opacity, 0.85)));
   }
   
   .gradient-emails {
-    background: linear-gradient(135deg, hsl(var(--gradient-emails-from)), hsl(var(--gradient-emails-to)));
+    background: linear-gradient(135deg, 
+      hsla(var(--gradient-emails-from), var(--tile-opacity, 0.85)), 
+      hsla(var(--gradient-emails-to), var(--tile-opacity, 0.85)));
   }
   
   /* Scrollbar styling */
