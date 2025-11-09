@@ -280,92 +280,8 @@ serve(async (req) => {
       }
     }
 
-    // 5. Approve and send emails
-    if ((lowerMessage.includes("approve") || lowerMessage.includes("send")) && lowerMessage.includes("email")) {
-      const leadName = message.match(/to\s+([A-Za-z\s]+)/i)?.[1]?.trim();
-
-      if (leadName) {
-        const { data: lead } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).single();
-
-        if (lead) {
-          const { data: campaign } = await supabase
-            .from("email_campaigns")
-            .select("*")
-            .eq("lead_id", lead.id)
-            .eq("draft_status", "draft")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-
-          if (campaign) {
-            const { data: sendData, error: sendError } = await supabase.functions.invoke("send-email", {
-              body: { campaignId: campaign.id },
-            });
-
-            if (sendError) {
-              console.error("Send email invoke error:", sendError);
-              actionResults.push(`Failed to send email: ${sendError.message}`);
-            } else if (sendData?.error) {
-              console.error("Send email function error:", sendData.error);
-              actionResults.push(`Failed to send email: ${sendData.error}`);
-            } else if (sendData?.success) {
-              actionResults.push(`Email sent to ${lead.name} successfully`);
-              actionsTaken.push({ action: "send_email", lead_id: lead.id, campaign_id: campaign.id });
-
-              await supabase.from("agent_actions").insert({
-                agent_type: "voice_assistant",
-                action_type: "email_sent",
-                status: "completed",
-                data: { lead_id: lead.id, campaign_id: campaign.id },
-                executed_at: new Date().toISOString(),
-              });
-            }
-          } else {
-            actionResults.push(`No draft email found for ${lead.name}`);
-          }
-        }
-      }
-    }
-
-    // 5b. Reject email drafts
-    if (lowerMessage.includes("reject") && lowerMessage.includes("email")) {
-      const leadName = message.match(/(?:to|for)\s+([A-Za-z\s]+)/i)?.[1]?.trim();
-
-      if (leadName) {
-        const { data: lead } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).single();
-
-        if (lead) {
-          const { data: campaign } = await supabase
-            .from("email_campaigns")
-            .select("*")
-            .eq("lead_id", lead.id)
-            .eq("draft_status", "draft")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-
-          if (campaign) {
-            await supabase.from("email_campaigns").delete().eq("id", campaign.id);
-            
-            actionResults.push(`Email draft for ${lead.name} has been rejected and deleted`);
-            actionsTaken.push({ action: "reject_email", lead_id: lead.id, campaign_id: campaign.id });
-
-            await supabase.from("agent_actions").insert({
-              agent_type: "voice_assistant",
-              action_type: "email_rejected",
-              status: "completed",
-              data: { lead_id: lead.id, campaign_id: campaign.id },
-              executed_at: new Date().toISOString(),
-            });
-          } else {
-            actionResults.push(`No draft email found for ${lead.name}`);
-          }
-        }
-      }
-    }
-
-    // 5c. Show pending email drafts
-    if ((lowerMessage.includes("show") || lowerMessage.includes("list")) && 
+    // 5b. Show pending email drafts
+    if ((lowerMessage.includes("show") || lowerMessage.includes("list")) &&
         (lowerMessage.includes("draft") || lowerMessage.includes("pending email"))) {
       const { data: drafts } = await supabase
         .from("email_campaigns")
@@ -460,84 +376,7 @@ serve(async (req) => {
       }
     }
 
-    // 9. Approve email reply
-    if (lowerMessage.includes("approve") && lowerMessage.includes("reply")) {
-      const leadName = message.match(/(?:to|for|from)\s+([A-Za-z\s]+)/i)?.[1]?.trim();
-
-      if (leadName) {
-        const { data: lead } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).single();
-
-        if (lead) {
-          const { data: reply } = await supabase
-            .from("email_replies")
-            .select("*")
-            .eq("lead_id", lead.id)
-            .eq("status", "pending")
-            .order("replied_at", { ascending: false })
-            .limit(1)
-            .single();
-
-          if (reply) {
-            // Update reply status
-            await supabase
-              .from("email_replies")
-              .update({
-                status: "approved",
-                reviewed_at: new Date().toISOString(),
-              })
-              .eq("id", reply.id);
-
-            // Send the reply via email
-            const { error: sendError } = await supabase.functions.invoke("send-email", {
-              body: {
-                to: lead.email,
-                subject: `Re: Previous conversation`,
-                body: reply.draft_response,
-              },
-            });
-
-            if (!sendError) {
-              actionResults.push(`Email reply to ${lead.name} approved and sent`);
-            }
-          }
-        }
-      }
-    }
-
-    // 10. Approve follow-up emails
-    if (lowerMessage.includes("approve") && lowerMessage.includes("follow")) {
-      const { data: followupActions } = await supabase
-        .from("agent_actions")
-        .select("*")
-        .eq("action_type", "followup_email_approval")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (followupActions && followupActions.length > 0) {
-        for (const action of followupActions) {
-          // Update action status
-          await supabase
-            .from("agent_actions")
-            .update({
-              status: "approved",
-              approved_at: new Date().toISOString(),
-            })
-            .eq("id", action.id);
-
-          // Send the follow-up email
-          const campaignId = action.data.campaign_id;
-          await supabase.functions.invoke("send-email", {
-            body: { campaignId },
-          });
-        }
-        actionResults.push(`Approved and sent ${followupActions.length} follow-up email(s)`);
-      } else {
-        actionResults.push("No follow-up emails pending approval");
-      }
-    }
-
-    // 11. Run background agents
+    // 10. Run background agents
     if (lowerMessage.includes("run agent") || lowerMessage.includes("start agent")) {
       const agentType = lowerMessage.includes("follow")
         ? "follow_up"
@@ -558,7 +397,7 @@ serve(async (req) => {
       }
     }
 
-    // 12. Show agent activity
+    // 11. Show agent activity
     if (
       lowerMessage.includes("agent") &&
       (lowerMessage.includes("activity") || lowerMessage.includes("status") || lowerMessage.includes("working"))
@@ -574,7 +413,7 @@ serve(async (req) => {
       }
     }
 
-    // 13. Schedule meetings
+    // 12. Schedule meetings
     if (lowerMessage.includes("schedule") && lowerMessage.includes("meeting")) {
       const leadName = message.match(/(?:with|for)\s+([A-Za-z\s]+?)(?:\s+and|\s+on|$)/i)?.[1]?.trim();
 
@@ -614,7 +453,7 @@ serve(async (req) => {
       }
     }
 
-    // 14. Update lead fields (email, phone, company, status, notes)
+    // 13. Update lead fields (email, phone, company, status, notes)
     if (
       (lowerMessage.includes("change") || lowerMessage.includes("update") || lowerMessage.includes("set")) &&
       (lowerMessage.includes("email") ||
@@ -705,7 +544,7 @@ serve(async (req) => {
       }
     }
 
-    // 15. Join meeting (prepare AI agent to join)
+    // 14. Join meeting (prepare AI agent to join)
     if (lowerMessage.includes("join") && lowerMessage.includes("meet")) {
       const leadName = message.match(/(?:with|for)\s+([A-Za-z\s]+)/i)?.[1]?.trim();
 
@@ -871,8 +710,7 @@ ${actionResults.length > 0 ? `\n[ACTIONS COMPLETED: ${actionResults.join("; ")}]
 - Analyzing leads and their scores
 - Finding and adding new leads
 - Setting follow-ups automatically
-- Drafting emails to leads
-- Approving and sending emails
+- DRAFTING emails to leads (HUMAN APPROVAL REQUIRED - you cannot send emails, only create drafts)
 - Creating and completing tasks
 - Managing meeting schedules
 - Opening different sections of the CRM
@@ -884,18 +722,21 @@ IMPORTANT CAPABILITIES:
 - You can ADD tasks/reminders when asked
 - You can MARK tasks complete when requested
 - You can SET follow-ups with leads
-- You can DRAFT emails to leads
-- You can SEND emails after voice approval
+- You can DRAFT emails to leads (but CANNOT send them - humans must approve and send via the UI)
 - You can FIND and SEARCH leads
 - You can ADD new leads to the system
 - You can UPDATE lead details (email, phone, company, status, notes)
-- You can REVIEW email replies from leads
-- You can APPROVE and SEND reply emails
-- You can APPROVE follow-up emails in bulk
+- You can REVIEW email replies from leads (but CANNOT send replies - humans must handle that)
 - You can RUN background agents (follow-up, lead scoring, pipeline)
 - You can SHOW agent activity and status
 - You can SCHEDULE meetings with leads
 - You can PREPARE AI agent to join meetings (the AI will automatically join at the scheduled time)
+
+CRITICAL LIMITATION - EMAIL SENDING:
+You CANNOT approve or send emails. You can only DRAFT them.
+All email drafts require human approval before sending.
+When you draft an email, tell the user to check the Emails for Review section to approve/send or delete it.
+Never tell users "I'll send the email" - always say "I've drafted an email for your review".
 
 UI NAVIGATION COMMANDS:
 - "Open settings" - Opens the settings modal
@@ -908,7 +749,7 @@ When actions are performed, you'll see [ACTIONS COMPLETED] in the context - ackn
 Always be proactive in suggesting and executing actions.
 Be concise, actionable, and professional. Keep responses under 2-3 sentences.
 Reference actual lead names and numbers when available.
-When reviewing emails, summarize sentiment and suggest approve/reject.`,
+When users ask you to send emails, remind them you can only draft them for human approval.`,
               },
             ],
           },
