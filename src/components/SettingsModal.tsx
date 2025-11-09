@@ -74,7 +74,7 @@ const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-tile max-w-2xl">
+      <DialogContent className="glass-tile max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -82,7 +82,7 @@ const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-3">
             <Label htmlFor="company">Company Name</Label>
             <Input id="company" placeholder="Your Company" className="rounded-xl" />

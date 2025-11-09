@@ -144,7 +144,7 @@ const MeetingScheduler = ({ open, onOpenChange }: MeetingSchedulerProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-tile max-w-md">
+      <DialogContent className="glass-tile max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />

@@ -199,7 +199,7 @@ const EmailReviewTile = () => {
       </div>
 
       <Dialog open={!!selectedDraft} onOpenChange={(open) => !open && setSelectedDraft(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Email Preview</DialogTitle>
             <DialogDescription>
