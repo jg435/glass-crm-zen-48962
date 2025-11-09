@@ -229,21 +229,30 @@ serve(async (req) => {
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
     ) {
-      // Extract lead name - look for patterns like "email to [Name]" or "email for [Name]"
+      // Extract lead name - improved patterns that capture ONLY the name
       let leadName = null;
       
-      // Try multiple patterns
-      const patterns = [
-        /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)/i,  // "email to Sarah Johnson"
-        /(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding)/i,  // "to Sarah about"
-        /(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)$/i  // "to Sarah" at end
-      ];
+      // Pattern 1: "email to/for [Name]" followed by "about/with/regarding" or whitespace
+      const pattern1 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding|and)/i;
+      const match1 = message.match(pattern1);
       
-      for (const pattern of patterns) {
-        const match = message.match(pattern);
-        if (match && match[1]) {
-          leadName = match[1].trim();
-          break;
+      if (match1 && match1[1]) {
+        leadName = match1[1].trim();
+      } else {
+        // Pattern 2: "to/for [Name]" followed by "about/with/regarding"
+        const pattern2 = /(?:^|\s)(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding)/i;
+        const match2 = message.match(pattern2);
+        
+        if (match2 && match2[1]) {
+          leadName = match2[1].trim();
+        } else {
+          // Pattern 3: "email to/for [Name]" at any position
+          const pattern3 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b/i;
+          const match3 = message.match(pattern3);
+          
+          if (match3 && match3[1]) {
+            leadName = match3[1].trim();
+          }
         }
       }
 
