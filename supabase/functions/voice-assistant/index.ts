@@ -385,64 +385,51 @@ serve(async (req) => {
 
     // 7. Add new leads - with conversational gathering
     if (lowerMessage.includes("add lead") || lowerMessage.includes("new lead") || lowerMessage.includes("create lead")) {
-      // Check if we have a pending lead creation in progress (stored in conversation context)
-      const pendingLeadContext = conversationHistory?.find((msg: any) => 
-        msg.role === 'assistant' && msg.parts?.[0]?.text?.includes('PENDING_LEAD_DATA:')
-      );
-
-      let pendingLead: any = null;
-      if (pendingLeadContext) {
-        const dataMatch = pendingLeadContext.parts[0].text.match(/PENDING_LEAD_DATA:\s*({.*})/);
-        if (dataMatch) {
-          try {
-            pendingLead = JSON.parse(dataMatch[1]);
-          } catch (e) {
-            console.error("Failed to parse pending lead data:", e);
-          }
-        }
-      }
-
-      // Extract new information from current message
+      // Extract information from current message - ALWAYS from the current message
+      console.log("DEBUG: Attempting to extract lead data from:", message);
+      
       const nameMatch = message
-        .match(/(?:name[d]?\s+is\s+|called\s+|name\s+)([A-Za-z\s]+?)(?:\s+and|\s+with|\s+e-?mail|\s+from|\s+at|$)/i)?.[1]
+        .match(/(?:name[d]?\s+is\s+|called\s+|his\s+name\s+is\s+|her\s+name\s+is\s+|named\s+)([A-Za-z\s]+?)(?:,|\s+and|\s+with|\s+e-?mail|\s+from|\s+at|\s+phone|\s+mobile|$)/i)?.[1]
         ?.trim();
+      console.log("DEBUG: Name match result:", nameMatch);
+      
       const emailMatch = message
-        .match(/e-?mail[:\s]+(?:is\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
+        .match(/e-?mail[:\s]+(?:is\s+|address\s+is\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
         ?.replace(/\s+/g, "")
         .trim();
-      const companyMatch = message.match(/(?:from|at|company|works\s+at)\s+([A-Za-z\s&]+?)(?:\s+and|\s+e-?mail|$)/i)?.[1]?.trim();
-      const phoneMatch = message.match(/phone[:\s]+([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
+      const companyMatch = message.match(/(?:from|at|company|works\s+at|works\s+for|he\s+works\s+for|she\s+works\s+for|for\s+)([A-Za-z\s&]+?)(?:\s+and|\s+e-?mail|\s+phone|\s+mobile|,|$)/i)?.[1]?.trim();
+      const phoneMatch = message.match(/(?:phone|mobile|number)[:\s]+(?:is\s+|number\s+is\s+)?([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
 
-      // Merge with pending data
       const leadData = {
-        name: nameMatch || pendingLead?.name || null,
-        email: emailMatch || pendingLead?.email || null,
-        company: companyMatch || pendingLead?.company || null,
-        phone: phoneMatch || pendingLead?.phone || null,
+        name: nameMatch || null,
+        email: emailMatch || null,
+        company: companyMatch || null,
+        phone: phoneMatch || null,
       };
 
-      console.log("Lead data gathered:", leadData);
+      console.log("Lead data gathered from current message:", leadData);
 
-      // Check if we have enough info to create the lead (at minimum, need a name)
-      if (leadData.name) {
-        // We have a name, we can create the lead
+      // Check if we have ALL required info before creating lead
+      if (leadData.name && leadData.email && leadData.company) {
+        // We have minimum required info (name, email, company)
         const { data: newLead, error } = await supabase
           .from("leads")
           .insert({
             name: leadData.name,
-            email: leadData.email || null,
-            company: leadData.company || null,
+            email: leadData.email,
+            company: leadData.company,
             phone: leadData.phone || null,
             status: "new",
-            source: "voice_assistant",
+            source: "manual", // Changed from voice_assistant to manual
             lead_score: 50,
           })
           .select()
           .single();
 
         if (!error && newLead) {
+          uiActions.push({ type: 'highlight_tile', tile: 'contacts' });
           actionResults.push(
-            `Lead ${leadData.name} added successfully! ${leadData.email ? `Email: ${leadData.email}` : ""} ${leadData.company ? `Company: ${leadData.company}` : ""}`
+            `✓ Lead created: ${leadData.name} from ${leadData.company}${leadData.phone ? ` (${leadData.phone})` : ""}`
           );
           actionsTaken.push({ action: "add_lead", lead_id: newLead.id, ...leadData });
 
@@ -456,12 +443,17 @@ serve(async (req) => {
           });
         } else {
           console.error("Lead creation error:", error);
-          actionResults.push(`Failed to create lead: ${error?.message || 'Unknown error'}`);
+          actionResults.push(`I was unable to add the new lead: ${error?.message || 'Unknown error'}`);
         }
       } else {
-        // We don't have enough info yet, need to ask for more details
+        // We don't have all required info - tell them what's missing
+        const missing = [];
+        if (!leadData.name) missing.push("name");
+        if (!leadData.email) missing.push("email");
+        if (!leadData.company) missing.push("company");
+        
         actionResults.push(
-          `PENDING_LEAD_DATA: ${JSON.stringify(leadData)} | I'll help you add this lead. What's the lead's name?`
+          `I need the following information to create the lead: ${missing.join(", ")}. Please provide all details together in one message.`
         );
       }
     }
@@ -836,10 +828,11 @@ IMPORTANT CAPABILITIES:
 - You can SEND/APPROVE emails when the user confirms (says "yes", "approve", "send the email")
 - You can FIND and SEARCH leads
 - You can ADD new leads to the system - GATHER DETAILS CONVERSATIONALLY
-  * When adding a lead, ask for: name (REQUIRED), email, company, phone
-  * If user doesn't provide all details at once, ASK for missing info one at a time
-  * If you see "PENDING_LEAD_DATA:" in actions completed, extract the partial data and ask for what's missing
-  * Always prioritize getting the name first, then email, then company, then phone
+  * Required fields: name, email, company (phone is optional)
+  * User must provide ALL required fields in ONE message
+  * Example: "Add new lead named John Smith, email john@acme.com, works for ACME Corporation"
+  * If any required field is missing, tell user what's needed and ask them to provide all together
+  * DO NOT create the lead until you have name, email, AND company
 - You can UPDATE lead details (email, phone, company, status, notes)
 - You can REVIEW email replies from leads (but CANNOT send replies - humans must handle that)
 - You can RUN background agents (follow-up, lead scoring, pipeline)
