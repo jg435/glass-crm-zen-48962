@@ -221,11 +221,54 @@ serve(async (req) => {
       }
     }
 
-    // 4. Draft emails - only trigger on draft/create/write email commands
-    if (
-      !lowerMessage.includes("approve") && 
-      !lowerMessage.includes("reject") && 
-      !lowerMessage.includes("send") &&
+    // 4a. Approve and send emails
+    if ((lowerMessage.includes("approve") || lowerMessage.includes("send") || lowerMessage.includes("yes")) && 
+        (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
+      // Get the most recent draft email
+      const { data: drafts } = await supabase
+        .from("email_campaigns")
+        .select("*, leads(name, email)")
+        .eq("draft_status", "draft")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (drafts && drafts.length > 0) {
+        const draft = drafts[0];
+        console.log("Approving and sending draft:", draft.id);
+
+        // Call send-email function
+        const { data: sendResult, error: sendError } = await supabase.functions.invoke("send-email", {
+          body: { 
+            campaignId: draft.id,
+            to: draft.leads?.email 
+          },
+        });
+
+        if (sendError) {
+          console.error("Send email invoke error:", sendError);
+          actionResults.push(`Failed to send email: ${sendError.message}`);
+        } else if (sendResult?.error) {
+          console.error("Send email function error:", sendResult.error);
+          actionResults.push(`Failed to send email: ${sendResult.error}`);
+        } else if (sendResult?.success) {
+          console.log("Email sent successfully");
+          actionResults.push(`Email sent to ${draft.leads?.name} successfully!`);
+          actionsTaken.push({ action: "send_email", campaign_id: draft.id, lead_name: draft.leads?.name });
+
+          await supabase.from("agent_actions").insert({
+            agent_type: "voice_assistant",
+            action_type: "email_sent",
+            status: "completed",
+            data: { campaign_id: draft.id, lead_id: draft.lead_id },
+            executed_at: new Date().toISOString(),
+          });
+        }
+      } else {
+        actionResults.push("No draft emails found to approve. Would you like me to draft an email?");
+      }
+    }
+    // 4b. Draft emails - only trigger on draft/create/write email commands
+    else if (
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
     ) {
@@ -340,24 +383,56 @@ serve(async (req) => {
       }
     }
 
-    // 7. Add new leads
-    if (lowerMessage.includes("add lead") || lowerMessage.includes("new lead")) {
+    // 7. Add new leads - with conversational gathering
+    if (lowerMessage.includes("add lead") || lowerMessage.includes("new lead") || lowerMessage.includes("create lead")) {
+      // Check if we have a pending lead creation in progress (stored in conversation context)
+      const pendingLeadContext = conversationHistory?.find((msg: any) => 
+        msg.role === 'assistant' && msg.parts?.[0]?.text?.includes('PENDING_LEAD_DATA:')
+      );
+
+      let pendingLead: any = null;
+      if (pendingLeadContext) {
+        const dataMatch = pendingLeadContext.parts[0].text.match(/PENDING_LEAD_DATA:\s*({.*})/);
+        if (dataMatch) {
+          try {
+            pendingLead = JSON.parse(dataMatch[1]);
+          } catch (e) {
+            console.error("Failed to parse pending lead data:", e);
+          }
+        }
+      }
+
+      // Extract new information from current message
       const nameMatch = message
-        .match(/(?:name[d]?\s+|called\s+)([A-Za-z\s]+?)(?:\s+and|\s+with|\s+e-?mail|$)/i)?.[1]
+        .match(/(?:name[d]?\s+is\s+|called\s+|name\s+)([A-Za-z\s]+?)(?:\s+and|\s+with|\s+e-?mail|\s+from|\s+at|$)/i)?.[1]
         ?.trim();
       const emailMatch = message
-        .match(/e-?mail[:\s]+([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
+        .match(/e-?mail[:\s]+(?:is\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
         ?.replace(/\s+/g, "")
         .trim();
-      const companyMatch = message.match(/(?:from|at|company)\s+([A-Za-z\s]+)/i)?.[1]?.trim();
+      const companyMatch = message.match(/(?:from|at|company|works\s+at)\s+([A-Za-z\s&]+?)(?:\s+and|\s+e-?mail|$)/i)?.[1]?.trim();
+      const phoneMatch = message.match(/phone[:\s]+([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
 
-      if (nameMatch) {
+      // Merge with pending data
+      const leadData = {
+        name: nameMatch || pendingLead?.name || null,
+        email: emailMatch || pendingLead?.email || null,
+        company: companyMatch || pendingLead?.company || null,
+        phone: phoneMatch || pendingLead?.phone || null,
+      };
+
+      console.log("Lead data gathered:", leadData);
+
+      // Check if we have enough info to create the lead (at minimum, need a name)
+      if (leadData.name) {
+        // We have a name, we can create the lead
         const { data: newLead, error } = await supabase
           .from("leads")
           .insert({
-            name: nameMatch,
-            email: emailMatch || null,
-            company: companyMatch || null,
+            name: leadData.name,
+            email: leadData.email || null,
+            company: leadData.company || null,
+            phone: leadData.phone || null,
             status: "new",
             source: "voice_assistant",
             lead_score: 50,
@@ -366,18 +441,28 @@ serve(async (req) => {
           .single();
 
         if (!error && newLead) {
-          actionResults.push(`Lead ${nameMatch} added successfully`);
-          actionsTaken.push({ action: "add_lead", lead_id: newLead.id, name: nameMatch, email: emailMatch });
+          actionResults.push(
+            `Lead ${leadData.name} added successfully! ${leadData.email ? `Email: ${leadData.email}` : ""} ${leadData.company ? `Company: ${leadData.company}` : ""}`
+          );
+          actionsTaken.push({ action: "add_lead", lead_id: newLead.id, ...leadData });
 
           // Log as agent action
           await supabase.from("agent_actions").insert({
             agent_type: "voice_assistant",
             action_type: "lead_created",
             status: "completed",
-            data: { lead_id: newLead.id, name: nameMatch, email: emailMatch },
+            data: { lead_id: newLead.id, ...leadData },
             executed_at: new Date().toISOString(),
           });
+        } else {
+          console.error("Lead creation error:", error);
+          actionResults.push(`Failed to create lead: ${error?.message || 'Unknown error'}`);
         }
+      } else {
+        // We don't have enough info yet, need to ask for more details
+        actionResults.push(
+          `PENDING_LEAD_DATA: ${JSON.stringify(leadData)} | I'll help you add this lead. What's the lead's name?`
+        );
       }
     }
 
@@ -747,9 +832,14 @@ IMPORTANT CAPABILITIES:
 - You can ADD tasks/reminders when asked
 - You can MARK tasks complete when requested
 - You can SET follow-ups with leads
-- You can DRAFT emails to leads (but CANNOT send them - humans must approve and send via the UI)
+- You can DRAFT emails to leads
+- You can SEND/APPROVE emails when the user confirms (says "yes", "approve", "send the email")
 - You can FIND and SEARCH leads
-- You can ADD new leads to the system
+- You can ADD new leads to the system - GATHER DETAILS CONVERSATIONALLY
+  * When adding a lead, ask for: name (REQUIRED), email, company, phone
+  * If user doesn't provide all details at once, ASK for missing info one at a time
+  * If you see "PENDING_LEAD_DATA:" in actions completed, extract the partial data and ask for what's missing
+  * Always prioritize getting the name first, then email, then company, then phone
 - You can UPDATE lead details (email, phone, company, status, notes)
 - You can REVIEW email replies from leads (but CANNOT send replies - humans must handle that)
 - You can RUN background agents (follow-up, lead scoring, pipeline)
@@ -757,11 +847,11 @@ IMPORTANT CAPABILITIES:
 - You can SCHEDULE meetings with leads
 - You can PREPARE AI agent to join meetings (the AI will automatically join at the scheduled time)
 
-CRITICAL LIMITATION - EMAIL SENDING:
-You CANNOT approve or send emails. You can only DRAFT them.
-All email drafts require human approval before sending.
-When you draft an email, tell the user to check the Emails for Review section to approve/send or delete it.
-Never tell users "I'll send the email" - always say "I've drafted an email for your review".
+EMAIL WORKFLOW:
+1. Draft emails for leads with "draft email to [Lead Name] about [topic]"
+2. Tell user to review the draft in the "Emails for Review" section
+3. When user says "approve" or "send the email" or "yes", the most recent draft will be sent immediately
+4. Confirm when email has been sent successfully
 
 UI NAVIGATION COMMANDS:
 - "Open settings" - Opens the settings modal

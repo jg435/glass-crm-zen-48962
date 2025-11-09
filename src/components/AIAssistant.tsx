@@ -249,8 +249,8 @@ const AIAssistant = ({
         setHighlightedTile({ id: 'calendar', name: 'Calendar' });
       } else if (lowerQuery.includes('dashboard') || lowerQuery.includes('overview')) {
         setHighlightedTile({ id: 'dashboard', name: 'Dashboard' });
-      } else if (lowerQuery.includes('email')) {
-        setHighlightedTile({ id: 'contacts', name: 'Email Campaigns' });
+      } else if (lowerQuery.includes('email') || lowerQuery.includes('draft') || lowerQuery.includes('review')) {
+        setHighlightedTile({ id: 'email-review', name: 'Emails for Review' });
       }
 
       console.log('Response received, will hide overlay to show tile');
