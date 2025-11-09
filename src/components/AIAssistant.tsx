@@ -277,6 +277,12 @@ const AIAssistant = ({
             case 'submit_form':
               await handleFormSubmit(action.formType, action.requiresConfirmation);
               break;
+            case 'preview_email':
+              await handleEmailAction('preview', action.leadName, action.company);
+              break;
+            case 'approve_email':
+              await handleEmailAction('approve', action.leadName, action.company);
+              break;
           }
         }
       }
@@ -429,6 +435,56 @@ const AIAssistant = ({
       toast({
         title: "Error",
         description: "Failed to submit form",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEmailAction = async (actionType: 'preview' | 'approve', leadName: string, company?: string) => {
+    console.log(`Email ${actionType} action for:`, leadName, company);
+    
+    try {
+      // Wait for the email review tile to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (actionType === 'preview') {
+        const { previewEmailDraft } = await import('@/utils/form-filler');
+        const success = previewEmailDraft(leadName, company);
+        
+        if (success) {
+          toast({
+            title: "Email Preview Opened",
+            description: `Showing email draft for ${leadName}`
+          });
+        } else {
+          toast({
+            title: "Email Not Found",
+            description: `Couldn't find email draft for ${leadName}`,
+            variant: "destructive"
+          });
+        }
+      } else if (actionType === 'approve') {
+        const { approveEmailDraft } = await import('@/utils/form-filler');
+        const success = approveEmailDraft(leadName, company);
+        
+        if (success) {
+          toast({
+            title: "Email Approved",
+            description: `Sending email to ${leadName}`
+          });
+        } else {
+          toast({
+            title: "Email Not Found",
+            description: `Couldn't find email draft for ${leadName}`,
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in email action:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${actionType} email`,
         variant: "destructive"
       });
     }

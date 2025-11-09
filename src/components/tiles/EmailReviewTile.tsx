@@ -142,6 +142,9 @@ const EmailReviewTile = () => {
             drafts.map((draft) => (
               <Card
                 key={draft.id}
+                data-email-draft-id={draft.id}
+                data-lead-name={draft.leads.name.toLowerCase()}
+                data-lead-company={draft.leads.company?.toLowerCase() || ''}
                 className="p-3 bg-white/60 border-white/40 hover:bg-white/80 transition-all border-l-4 border-warning"
               >
                 <div className="flex justify-between items-start mb-2">
@@ -168,6 +171,8 @@ const EmailReviewTile = () => {
                     size="sm" 
                     variant="outline"
                     onClick={() => setSelectedDraft(draft)}
+                    data-action="preview-email"
+                    data-draft-id={draft.id}
                     className="h-7 text-xs flex-1"
                   >
                     <Eye className="h-3 w-3 mr-1" />
@@ -177,6 +182,8 @@ const EmailReviewTile = () => {
                     size="sm" 
                     onClick={() => handleApprove(draft)}
                     disabled={isProcessing}
+                    data-action="approve-email"
+                    data-draft-id={draft.id}
                     className="h-7 text-xs flex-1"
                   >
                     <CheckCircle className="h-3 w-3 mr-1" />

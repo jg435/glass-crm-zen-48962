@@ -212,3 +212,73 @@ export const openDialog = (dialogType: string): boolean => {
     return false;
   }
 };
+
+/**
+ * Preview an email draft by clicking the preview button
+ */
+export const previewEmailDraft = (leadName: string, company?: string): boolean => {
+  console.log('Attempting to preview email for:', leadName, company);
+  
+  // Find the email draft card
+  const cards = Array.from(document.querySelectorAll('[data-email-draft-id]'));
+  const targetCard = cards.find(card => {
+    const cardLeadName = card.getAttribute('data-lead-name') || '';
+    const cardCompany = card.getAttribute('data-lead-company') || '';
+    const searchName = leadName.toLowerCase();
+    const searchCompany = company?.toLowerCase() || '';
+    
+    return cardLeadName.includes(searchName) || 
+           (searchCompany && cardCompany.includes(searchCompany));
+  });
+  
+  if (!targetCard) {
+    console.log('Email draft card not found for:', leadName);
+    return false;
+  }
+  
+  // Find and click the preview button
+  const previewButton = targetCard.querySelector('[data-action="preview-email"]') as HTMLElement;
+  if (previewButton) {
+    console.log('Found preview button, clicking');
+    previewButton.click();
+    return true;
+  }
+  
+  console.log('Preview button not found');
+  return false;
+};
+
+/**
+ * Approve and send an email draft by clicking the approve button
+ */
+export const approveEmailDraft = (leadName: string, company?: string): boolean => {
+  console.log('Attempting to approve email for:', leadName, company);
+  
+  // Find the email draft card
+  const cards = Array.from(document.querySelectorAll('[data-email-draft-id]'));
+  const targetCard = cards.find(card => {
+    const cardLeadName = card.getAttribute('data-lead-name') || '';
+    const cardCompany = card.getAttribute('data-lead-company') || '';
+    const searchName = leadName.toLowerCase();
+    const searchCompany = company?.toLowerCase() || '';
+    
+    return cardLeadName.includes(searchName) || 
+           (searchCompany && cardCompany.includes(searchCompany));
+  });
+  
+  if (!targetCard) {
+    console.log('Email draft card not found for:', leadName);
+    return false;
+  }
+  
+  // Find and click the approve button
+  const approveButton = targetCard.querySelector('[data-action="approve-email"]') as HTMLElement;
+  if (approveButton) {
+    console.log('Found approve button, clicking');
+    approveButton.click();
+    return true;
+  }
+  
+  console.log('Approve button not found');
+  return false;
+};

@@ -335,53 +335,124 @@ serve(async (req) => {
       }
     }
 
-    // 4a. Approve and send emails
+    // 4a. Approve and send emails OR Preview/Open email drafts
     if ((lowerMessage.includes("approve") || lowerMessage.includes("send") || lowerMessage.includes("yes")) && 
         (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
       // Get the most recent draft email
       const { data: drafts } = await supabase
         .from("email_campaigns")
-        .select("*, leads(name, email)")
+        .select("*, leads(name, email, company)")
         .eq("draft_status", "draft")
         .order("created_at", { ascending: false })
         .limit(1);
 
-      if (drafts && drafts.length > 0) {
-        const draft = drafts[0];
-        console.log("Approving and sending draft:", draft.id);
+      const draft = drafts?.[0];
 
-        // Call send-email function
-        const { data: sendResult, error: sendError } = await supabase.functions.invoke("send-email", {
-          body: { 
-            campaignId: draft.id,
-            to: draft.leads?.email 
-          },
-        });
-
-        if (sendError) {
-          console.error("Send email invoke error:", sendError);
-          actionResults.push(`Failed to send email: ${sendError.message}`);
-        } else if (sendResult?.error) {
-          console.error("Send email function error:", sendResult.error);
-          actionResults.push(`Failed to send email: ${sendResult.error}`);
-        } else if (sendResult?.success) {
-          console.log("Email sent successfully");
-          actionResults.push(`Email sent to ${draft.leads?.name} successfully!`);
-          actionsTaken.push({ action: "send_email", campaign_id: draft.id, lead_name: draft.leads?.name });
-
-          await supabase.from("agent_actions").insert({
-            agent_type: "voice_assistant",
-            action_type: "email_sent",
-            status: "completed",
-            data: { campaign_id: draft.id, lead_id: draft.lead_id },
-            executed_at: new Date().toISOString(),
+      if (draft) {
+        // Check if this is actually a preview/open request
+        const isPreviewRequest = lowerMessage.includes("preview") || 
+                                lowerMessage.includes("open") || 
+                                lowerMessage.includes("view") ||
+                                lowerMessage.includes("show");
+        
+        if (isPreviewRequest) {
+          // User wants to preview, not send
+          uiActions.push({ 
+            type: 'preview_email', 
+            leadName: draft.leads.name,
+            company: draft.leads.company
           });
+          actionResults.push(`Opening email preview for ${draft.leads.name} (${draft.leads.company || 'Monitor Co'})`);
+        } else {
+          // User wants to approve and send
+          const { data: emailResult, error: sendError } = await supabase.functions.invoke("send-email", {
+            body: { campaignId: draft.id },
+          });
+
+          if (sendError) {
+            console.error("Send email invoke error:", sendError);
+            actionResults.push(`Failed to send email: ${sendError.message}`);
+          } else if (emailResult?.error) {
+            console.error("Send email function error:", emailResult.error);
+            actionResults.push(`Failed to send email: ${emailResult.error}`);
+          } else {
+            console.log("Email sent successfully");
+            actionResults.push(`Email sent to ${draft.leads.name} (${draft.leads.email || 'jgupta0700@gmail.com'})`);
+            actionsTaken.push({ action: "email_sent", lead_id: draft.lead_id, campaign_id: draft.id });
+
+            await supabase.from("agent_actions").insert({
+              agent_type: "voice_assistant",
+              action_type: "email_sent",
+              status: "completed",
+              data: { campaign_id: draft.id, lead_id: draft.lead_id },
+              executed_at: new Date().toISOString(),
+            });
+          }
         }
       } else {
         actionResults.push("No draft emails found to approve. Would you like me to draft an email?");
       }
     }
-    // 4b. Draft emails - only trigger on draft/create/write email commands
+    // 4b. Preview/Open specific email draft
+    else if ((lowerMessage.includes("open") || lowerMessage.includes("preview") || lowerMessage.includes("view") || lowerMessage.includes("show")) && 
+        (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
+      
+      // Extract lead name or company from the message
+      const nameMatch = message.match(/(?:for|to|with|from)\s+([A-Za-z\s]+?)(?:\s+\(|\s+at|\s+email|$)/i)?.[1]?.trim();
+      
+      if (nameMatch) {
+        const { data: leads } = await supabase.from("leads").select("*").ilike("name", `%${nameMatch}%`).limit(1);
+        const lead = leads?.[0];
+        
+        if (lead) {
+          // Check if there's a draft for this lead
+          const { data: drafts } = await supabase
+            .from("email_campaigns")
+            .select("*, leads(name, email, company)")
+            .eq("lead_id", lead.id)
+            .eq("draft_status", "draft")
+            .order("created_at", { ascending: false })
+            .limit(1);
+          
+          const draft = drafts?.[0];
+          
+          if (draft) {
+            uiActions.push({ 
+              type: 'preview_email', 
+              leadName: lead.name,
+              company: lead.company
+            });
+            actionResults.push(`Opening email draft for ${lead.name} (${lead.company || 'Unknown Company'})`);
+          } else {
+            actionResults.push(`No email draft found for ${lead.name}. Would you like me to draft one?`);
+          }
+        } else {
+          actionResults.push(`Lead "${nameMatch}" not found`);
+        }
+      } else {
+        // No specific lead mentioned, show the most recent draft
+        const { data: drafts } = await supabase
+          .from("email_campaigns")
+          .select("*, leads(name, email, company)")
+          .eq("draft_status", "draft")
+          .order("created_at", { ascending: false })
+          .limit(1);
+        
+        const draft = drafts?.[0];
+        
+        if (draft) {
+          uiActions.push({ 
+            type: 'preview_email', 
+            leadName: draft.leads.name,
+            company: draft.leads.company
+          });
+          actionResults.push(`Opening email draft for ${draft.leads.name} (${draft.leads.company || 'Unknown Company'})`);
+        } else {
+          actionResults.push("No email drafts found to preview");
+        }
+      }
+    }
+    // 4c. Draft emails - only trigger on draft/create/write email commands
     else if (
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
