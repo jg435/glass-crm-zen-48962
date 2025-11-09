@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WakeWordDetector } from "@/utils/WakeWordDetection";
+import { fillFormFields, clickDialogButton, type FormFillAction } from "@/utils/form-filler";
 
 interface Message {
   role: "user" | "assistant";
@@ -225,6 +226,9 @@ const AIAssistant = ({
                 onNavigateToLead?.(action.leadId);
               }
               break;
+            case 'fill_form':
+              await handleFormFill(action as FormFillAction & { leadId?: string });
+              break;
           }
         }
       }
@@ -279,6 +283,63 @@ const AIAssistant = ({
         variant: "destructive"
       });
       handleDismiss();
+    }
+  };
+
+  const handleFormFill = async (action: FormFillAction & { leadId?: string }) => {
+    console.log('Form fill action:', action);
+    
+    try {
+      // Navigate to the lead first if needed
+      if (action.leadId && action.formType === 'lead_edit') {
+        onNavigateToLead?.(action.leadId);
+        // Wait for navigation and page to render
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else if (action.formType === 'meeting_scheduler') {
+        onOpenMeeting?.();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Wait a bit more for dialog to open
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Fill the form fields
+      const success = fillFormFields(action.formType, action.data);
+      
+      if (success) {
+        toast({
+          title: "Form Auto-Filled",
+          description: `Filled ${Object.keys(action.data).length} field(s) based on your voice input`,
+        });
+      } else {
+        toast({
+          title: "Partial Fill",
+          description: "Some fields couldn't be filled automatically",
+          variant: "destructive"
+        });
+      }
+
+      // If meeting scheduler and we have a leadId, select it
+      if (action.formType === 'meeting_scheduler' && action.leadId) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const selectTrigger = document.querySelector('[role="combobox"]') as HTMLElement;
+        if (selectTrigger) {
+          selectTrigger.click();
+          await new Promise(resolve => setTimeout(resolve, 200));
+          const options = Array.from(document.querySelectorAll('[role="option"]'));
+          const leadOption = options.find(opt => 
+            opt.getAttribute('data-value') === action.leadId
+          ) as HTMLElement;
+          if (leadOption) leadOption.click();
+        }
+      }
+    } catch (error) {
+      console.error('Error in form fill:', error);
+      toast({
+        title: "Error",
+        description: "Failed to auto-fill form",
+        variant: "destructive"
+      });
     }
   };
 

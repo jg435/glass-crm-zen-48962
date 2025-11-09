@@ -64,7 +64,7 @@ serve(async (req) => {
     let actionsTaken: any[] = [];
     let uiActions: any[] = [];
 
-    // 0. UI Navigation Commands
+    // 0. UI Navigation Commands & Form Auto-Fill
     // Open Settings
     if (lowerMessage.includes("open settings") || lowerMessage.includes("show settings")) {
       uiActions.push({ type: 'open_settings' });
@@ -106,6 +106,93 @@ serve(async (req) => {
           actionResults.push(`Opening details for ${lead.name}`);
         } else {
           actionResults.push(`Lead "${leadName}" not found`);
+        }
+      }
+    }
+
+    // Form Auto-Fill: Edit Lead
+    if ((lowerMessage.includes("edit") || lowerMessage.includes("update")) && lowerMessage.includes("lead")) {
+      const leadName = message.match(/(?:edit|update)\s+lead\s+(?:for\s+)?([A-Za-z\s]+)/i)?.[1]?.trim();
+      
+      if (leadName) {
+        const { data: leads } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).limit(1);
+        const lead = leads?.[0];
+        
+        if (lead) {
+          // Extract field updates from voice input
+          const formData: any = {};
+          
+          // Extract email
+          const emailMatch = message.match(/e-?mail[:\s]+(?:is\s+|to\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1];
+          if (emailMatch) formData.email = emailMatch;
+          
+          // Extract phone
+          const phoneMatch = message.match(/(?:phone|number)[:\s]+(?:is\s+|to\s+)?([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
+          if (phoneMatch) formData.phone = phoneMatch;
+          
+          // Extract company
+          const companyMatch = message.match(/company[:\s]+(?:is\s+|to\s+)?([A-Za-z\s&]+?)(?:,|\.|$)/i)?.[1]?.trim();
+          if (companyMatch) formData.company = companyMatch;
+          
+          // Extract industry
+          const industryMatch = message.match(/industry[:\s]+(?:is\s+|to\s+)?([A-Za-z\s]+?)(?:,|\.|$)/i)?.[1]?.trim();
+          if (industryMatch) formData.industry = industryMatch;
+          
+          // Extract notes
+          const notesMatch = message.match(/notes?[:\s]+(.+?)(?:\.|$)/i)?.[1]?.trim();
+          if (notesMatch) formData.notes = notesMatch;
+
+          if (Object.keys(formData).length > 0) {
+            uiActions.push({ 
+              type: 'fill_form', 
+              formType: 'lead_edit',
+              leadId: lead.id,
+              data: formData 
+            });
+            actionResults.push(`Editing ${lead.name} with: ${Object.keys(formData).join(', ')}`);
+          } else {
+            uiActions.push({ type: 'navigate_to_lead', leadId: lead.id });
+            actionResults.push(`Opening ${lead.name} for editing`);
+          }
+        }
+      }
+    }
+
+    // Form Auto-Fill: Schedule Meeting with data
+    if ((lowerMessage.includes("schedule") || lowerMessage.includes("book")) && 
+        lowerMessage.includes("meeting") && 
+        (lowerMessage.includes("with") || lowerMessage.includes("for"))) {
+      
+      const leadName = message.match(/(?:with|for)\s+([A-Za-z\s]+?)(?:\s+on|\s+at|\s+titled|$)/i)?.[1]?.trim();
+      const titleMatch = message.match(/titled\s+(.+?)(?:\s+on|\s+at|$)/i)?.[1]?.trim() ||
+                        message.match(/meeting\s+(.+?)(?:\s+with|\s+for|\s+on|\s+at|$)/i)?.[1]?.trim();
+      const dateMatch = message.match(/(?:on|at)\s+(.+?)(?:$)/i)?.[1]?.trim();
+
+      if (leadName) {
+        const { data: leads } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).limit(1);
+        const lead = leads?.[0];
+        
+        if (lead) {
+          const formData: any = {};
+          if (titleMatch) formData.title = titleMatch;
+          if (dateMatch) {
+            // Parse natural language dates
+            const tomorrow = dateMatch.toLowerCase().includes('tomorrow');
+            if (tomorrow) {
+              const date = new Date();
+              date.setDate(date.getDate() + 1);
+              date.setHours(9, 0, 0, 0);
+              formData.datetime = date.toISOString().slice(0, 16);
+            }
+          }
+
+          uiActions.push({ 
+            type: 'fill_form', 
+            formType: 'meeting_scheduler',
+            leadId: lead.id,
+            data: formData 
+          });
+          actionResults.push(`Preparing meeting with ${lead.name}`);
         }
       }
     }
