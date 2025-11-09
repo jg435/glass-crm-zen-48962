@@ -715,6 +715,35 @@ serve(async (req) => {
         .eq("id", runId);
     }
 
+    // 🔍 CALL VERIFIER AGENT to check all claimed actions
+    let verificationReport = null;
+    if (actionsTaken.length > 0) {
+      console.log("🔍 Calling verifier agent to check", actionsTaken.length, "actions");
+      try {
+        const { data: verifierResult, error: verifierError } = await supabase.functions.invoke("agent-verifier", {
+          body: {
+            actionsTaken,
+            actionResults,
+          },
+        });
+
+        if (verifierError) {
+          console.error("⚠️ Verifier call failed:", verifierError);
+        } else {
+          verificationReport = verifierResult;
+          console.log("✅ Verification complete:", verifierResult.summary);
+          
+          // If verifier fixed any actions, append to actionsTaken
+          if (verifierResult.fixed_actions && verifierResult.fixed_actions.length > 0) {
+            actionsTaken.push(...verifierResult.fixed_actions);
+            console.log("🔧 Verifier fixed", verifierResult.fixed_actions.length, "actions");
+          }
+        }
+      } catch (e) {
+        console.error("⚠️ Verifier invocation error:", e);
+      }
+    }
+
     // Build context with actual data
     const dataContext = `
 Current Sales Data:
@@ -786,6 +815,29 @@ ${
 }
 
 ${actionResults.length > 0 ? `\n[ACTIONS COMPLETED: ${actionResults.join("; ")}]` : ""}
+
+${verificationReport ? `
+VERIFICATION REPORT:
+✅ Verified: ${verificationReport.summary.verified}
+🔧 Fixed by Verifier: ${verificationReport.summary.fixed}
+❌ Failed: ${verificationReport.summary.failed}
+
+${verificationReport.report.filter((r: any) => r.status === 'fixed').length > 0 ? 
+  `IMPORTANT: The following actions were NOT completed initially but VERIFIER FIXED them:\n${
+    verificationReport.report
+      .filter((r: any) => r.status === 'fixed')
+      .map((r: any) => `- ${r.action}: ${r.issue}`)
+      .join('\n')
+  }` : ''}
+
+${verificationReport.report.filter((r: any) => r.status === 'failed').length > 0 ? 
+  `CRITICAL: The following actions FAILED and could not be fixed:\n${
+    verificationReport.report
+      .filter((r: any) => r.status === 'failed')
+      .map((r: any) => `- ${r.action}: ${r.issue}`)
+      .join('\n')
+  }` : ''}
+` : ''}
 `;
 
     console.log("Data context prepared with live database info");

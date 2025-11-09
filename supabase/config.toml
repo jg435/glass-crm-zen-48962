@@ -3,6 +3,9 @@ project_id = "nbfwygkifdklvigbtxwq"
 [functions.agent-orchestrator]
 verify_jwt = false
 
+[functions.agent-verifier]
+verify_jwt = false
+
 [functions.auto-deal-creator]
 verify_jwt = false
 
