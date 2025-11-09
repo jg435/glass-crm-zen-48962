@@ -335,8 +335,25 @@ serve(async (req) => {
       }
     }
 
-    // 4a. Approve and send emails OR Preview/Open email drafts
-    if ((lowerMessage.includes("approve") || lowerMessage.includes("send") || lowerMessage.includes("yes")) && 
+    // 4a. Close, Reject, or Approve actions in the preview dialog
+    if (lowerMessage.includes("close") && (lowerMessage.includes("preview") || lowerMessage.includes("email") || lowerMessage.includes("dialog"))) {
+      uiActions.push({ type: 'close_preview' });
+      actionResults.push("Closing email preview");
+    }
+    else if (lowerMessage.includes("reject") && (lowerMessage.includes("email") || lowerMessage.includes("draft") || lowerMessage.includes("this"))) {
+      // Check if preview is open by looking for the reject button in preview
+      uiActions.push({ type: 'reject_preview' });
+      actionResults.push("Rejecting email draft");
+    }
+    else if ((lowerMessage.includes("approve") || lowerMessage.includes("send")) && 
+        (lowerMessage.includes("email") || lowerMessage.includes("draft") || lowerMessage.includes("this")) &&
+        (lowerMessage.includes("from preview") || lowerMessage.includes("in preview") || !lowerMessage.includes("for"))) {
+      // If user says "approve this email" or "send this email" while in preview
+      uiActions.push({ type: 'approve_preview' });
+      actionResults.push("Approving and sending email from preview");
+    }
+    // 4b. Approve and send emails OR Preview/Open email drafts (from main list)
+    else if ((lowerMessage.includes("approve") || lowerMessage.includes("send") || lowerMessage.includes("yes")) && 
         (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
       // Get the most recent draft email
       const { data: drafts } = await supabase

@@ -245,6 +245,7 @@ const EmailReviewTile = () => {
                   variant="outline" 
                   onClick={() => setSelectedDraft(null)}
                   disabled={isProcessing}
+                  data-action="close-preview"
                 >
                   Close
                 </Button>
@@ -252,6 +253,8 @@ const EmailReviewTile = () => {
                   variant="destructive"
                   onClick={() => handleReject(selectedDraft.id)}
                   disabled={isProcessing}
+                  data-action="reject-preview"
+                  data-draft-id={selectedDraft.id}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
                   Reject
@@ -259,6 +262,8 @@ const EmailReviewTile = () => {
                 <Button 
                   onClick={() => handleApprove(selectedDraft)}
                   disabled={isProcessing}
+                  data-action="approve-preview"
+                  data-draft-id={selectedDraft.id}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve & Send

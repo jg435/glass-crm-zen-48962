@@ -283,6 +283,15 @@ const AIAssistant = ({
             case 'approve_email':
               await handleEmailAction('approve', action.leadName, action.company);
               break;
+            case 'close_preview':
+              await handleEmailAction('close_preview');
+              break;
+            case 'reject_preview':
+              await handleEmailAction('reject_preview');
+              break;
+            case 'approve_preview':
+              await handleEmailAction('approve_preview');
+              break;
           }
         }
       }
@@ -440,7 +449,11 @@ const AIAssistant = ({
     }
   };
 
-  const handleEmailAction = async (actionType: 'preview' | 'approve', leadName: string, company?: string) => {
+  const handleEmailAction = async (
+    actionType: 'preview' | 'approve' | 'close_preview' | 'reject_preview' | 'approve_preview',
+    leadName?: string,
+    company?: string
+  ) => {
     console.log(`Email ${actionType} action for:`, leadName, company);
     
     try {
@@ -449,7 +462,7 @@ const AIAssistant = ({
       
       if (actionType === 'preview') {
         const { previewEmailDraft } = await import('@/utils/form-filler');
-        const success = previewEmailDraft(leadName, company);
+        const success = previewEmailDraft(leadName!, company);
         
         if (success) {
           toast({
@@ -465,7 +478,7 @@ const AIAssistant = ({
         }
       } else if (actionType === 'approve') {
         const { approveEmailDraft } = await import('@/utils/form-filler');
-        const success = approveEmailDraft(leadName, company);
+        const success = approveEmailDraft(leadName!, company);
         
         if (success) {
           toast({
@@ -476,6 +489,54 @@ const AIAssistant = ({
           toast({
             title: "Email Not Found",
             description: `Couldn't find email draft for ${leadName}`,
+            variant: "destructive"
+          });
+        }
+      } else if (actionType === 'close_preview') {
+        const { closeEmailPreview } = await import('@/utils/form-filler');
+        const success = closeEmailPreview();
+        
+        if (success) {
+          toast({
+            title: "Preview Closed",
+            description: "Email preview dialog closed"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Preview dialog not found",
+            variant: "destructive"
+          });
+        }
+      } else if (actionType === 'reject_preview') {
+        const { rejectEmailPreview } = await import('@/utils/form-filler');
+        const success = rejectEmailPreview();
+        
+        if (success) {
+          toast({
+            title: "Email Rejected",
+            description: "Email draft has been deleted"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Reject button not found",
+            variant: "destructive"
+          });
+        }
+      } else if (actionType === 'approve_preview') {
+        const { approveEmailPreview } = await import('@/utils/form-filler');
+        const success = approveEmailPreview();
+        
+        if (success) {
+          toast({
+            title: "Email Approved",
+            description: "Sending email now"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Approve button not found",
             variant: "destructive"
           });
         }

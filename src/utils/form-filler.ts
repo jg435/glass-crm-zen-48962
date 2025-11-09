@@ -282,3 +282,54 @@ export const approveEmailDraft = (leadName: string, company?: string): boolean =
   console.log('Approve button not found');
   return false;
 };
+
+/**
+ * Close the email preview dialog
+ */
+export const closeEmailPreview = (): boolean => {
+  console.log('Attempting to close email preview');
+  
+  const closeButton = document.querySelector('[data-action="close-preview"]') as HTMLElement;
+  if (closeButton) {
+    console.log('Found close button, clicking');
+    closeButton.click();
+    return true;
+  }
+  
+  console.log('Close button not found');
+  return false;
+};
+
+/**
+ * Reject the email in the preview dialog
+ */
+export const rejectEmailPreview = (): boolean => {
+  console.log('Attempting to reject email in preview');
+  
+  const rejectButton = document.querySelector('[data-action="reject-preview"]') as HTMLElement;
+  if (rejectButton) {
+    console.log('Found reject button, clicking');
+    rejectButton.click();
+    return true;
+  }
+  
+  console.log('Reject button not found');
+  return false;
+};
+
+/**
+ * Approve and send the email in the preview dialog
+ */
+export const approveEmailPreview = (): boolean => {
+  console.log('Attempting to approve email in preview');
+  
+  const approveButton = document.querySelector('[data-action="approve-preview"]') as HTMLElement;
+  if (approveButton) {
+    console.log('Found approve button in preview, clicking');
+    approveButton.click();
+    return true;
+  }
+  
+  console.log('Approve button not found in preview');
+  return false;
+};
