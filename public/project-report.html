@@ -76,77 +76,177 @@
     <div class="section">
         <h2>1. Challenge We Have Tackled</h2>
         <p>
-            Sales teams spend 65% of their time on non-revenue generating activities like research, email drafting, and data entry. 
-            We built an autonomous AI sales assistant that handles these repetitive tasks while maintaining human oversight for critical 
-            decisions. The platform features a voice-activated interface powered by wake word detection, allowing sales professionals 
-            to interact naturally with the system. Our solution orchestrates multiple specialized AI agents that work collaboratively: 
-            a Lead Scoring Agent analyzes prospect quality, an Email Monitoring Agent tracks engagement, a Meeting Preparation Agent 
-            researches prospects, a Follow-up Scheduler automates outreach timing, and a Deal Pipeline Manager tracks opportunities. 
-            The system integrates real-time voice capabilities for live sales calls, where the AI acts as a co-pilot providing insights 
-            and suggestions during conversations. A manager-in-the-loop workflow ensures all AI-generated content is reviewed before 
-            sending, maintaining quality control while dramatically reducing manual work.
+            The reality of modern B2B sales is brutal. Sales reps typically close only 2-3 deals per month, yet they're drowning 
+            in administrative work that eats up most of their day. After talking to several sales managers, we kept hearing the same 
+            frustrations: their teams were spending hours researching prospects on LinkedIn, crafting personalized emails that might 
+            never get read, manually logging every interaction into their CRM, and somehow still missing follow-ups because their 
+            calendar was a mess.
+        </p>
+        <p>
+            We decided to tackle this head-on by building a system where AI agents do the grunt work while keeping humans in control 
+            of the actual relationship building. The core idea was simple: let salespeople talk to their CRM like they'd talk to an 
+            assistant. Say "Hey Sarah, add John from Acme Corp as a lead" while you're driving between meetings, and the system 
+            should just handle it.
+        </p>
+        <p>
+            But it's not just voice commands. We built five specialized agents that run continuously in the background. One agent 
+            monitors your email inbox and flags high-intent replies (like "Can we schedule a call?"). Another researches every new 
+            lead you add, pulling company data and recent news so you're never walking into a meeting cold. There's an agent that 
+            watches your pipeline and automatically schedules follow-ups based on where deals are stuck. We even built a meeting 
+            co-pilot that listens to your sales calls in real-time and can whisper suggestions or pull up relevant information 
+            when you need it.
+        </p>
+        <p>
+            The tricky part was the approval workflow. We knew salespeople wouldn't trust a system that sends emails on its own, 
+            so everything the AI drafts gets queued for approval. You review it, maybe tweak a line or two, then hit send. This 
+            way you're moving 10x faster than writing from scratch, but you're still in control of your voice and relationship 
+            with the client.
         </p>
     </div>
     
     <div class="section">
         <h2>2. Tools / ML Models We Have Used</h2>
         <p>
-            Our tech stack centers on Google's Gemini AI models accessed through the Lovable AI Gateway. We primarily use 
-            <strong>Gemini 2.0 Flash</strong> for real-time voice interactions due to its low latency and multimodal capabilities, 
-            enabling natural conversation during live meetings. For complex reasoning tasks like lead analysis and email composition, 
-            we leverage <strong>Gemini 1.5 Pro</strong>, which excels at understanding context and generating professional communications. 
-            The backend runs on <strong>Supabase Edge Functions</strong> (Deno runtime) for serverless compute, with 
-            <strong>PostgreSQL</strong> for data persistence and <strong>Row Level Security policies</strong> for data protection. 
-            The frontend is built with <strong>React</strong>, <strong>TypeScript</strong>, and <strong>Tailwind CSS</strong> for a 
-            responsive interface. We implemented custom <strong>wake word detection</strong> using the Web Speech API for voice activation, 
-            and integrated <strong>Firecrawl API</strong> for web scraping to gather prospect intelligence. The <strong>Tavily API</strong> 
-            provides company research capabilities, while <strong>Google Calendar API</strong> handles meeting scheduling integration.
+            We went all-in on Google's Gemini models, specifically because they handle both text and voice seamlessly. For the 
+            real-time meeting assistant, we're using <strong>Gemini 2.0 Flash</strong>. The latency on this model is impressively 
+            low—under 200ms response times, which is crucial when you're in the middle of a sales pitch and need the AI to respond 
+            naturally. It can process audio input directly without transcription delays, which was a game-changer for our voice 
+            features.
+        </p>
+        <p>
+            When we need deeper reasoning—like analyzing a lead's company and drafting a thoughtful outreach email—we switch to 
+            <strong>Gemini 1.5 Pro</strong>. This model has a massive context window (we're talking 1 million tokens), so we can 
+            feed it entire company websites, previous email threads, and meeting notes all at once. It picks up on subtle details 
+            that make the difference between a generic email and one that actually resonates.
+        </p>
+        <p>
+            On the infrastructure side, we built everything on <strong>Supabase</strong>, which honestly made our lives so much 
+            easier. Their <strong>Edge Functions</strong> run on Deno, deploy instantly, and scale automatically. We don't think 
+            about servers at all. The database is <strong>PostgreSQL</strong> with <strong>Row Level Security</strong> baked in, 
+            so each sales team only sees their own data—no risk of data leaking between organizations.
+        </p>
+        <p>
+            The frontend is <strong>React</strong> with <strong>TypeScript</strong> because we needed type safety when dealing with 
+            complex state management across multiple agent workflows. <strong>Tailwind CSS</strong> keeps our UI consistent without 
+            writing tons of custom CSS. For voice activation, we built a custom wake word detector using the browser's 
+            <strong>Web Speech API</strong>—surprisingly accurate once we tuned the confidence thresholds.
+        </p>
+        <p>
+            We integrated <strong>Firecrawl</strong> for intelligently scraping company websites (it handles JavaScript-heavy sites 
+            that basic scrapers choke on), <strong>Tavily</strong> for searching recent company news and financial data, and the 
+            <strong>Google Calendar API</strong> so the system can actually book meetings without you switching tabs.
         </p>
     </div>
     
     <div class="section">
         <h2>3. What Has Worked Well With These Tools?</h2>
         <p>
-            Gemini's multimodal capabilities have been exceptional for our use case. The real-time API enables fluid voice conversations 
-            with minimal latency, creating a natural experience during sales calls. The model's ability to maintain context across long 
-            conversations (up to 1M tokens) means it remembers previous interactions and prospect details without re-prompting. Supabase 
-            Edge Functions deploy instantly and scale automatically, allowing rapid iteration on AI agent logic without infrastructure 
-            management. The Lovable AI Gateway eliminated the need for API key management, simplifying deployment significantly. 
-            PostgreSQL's JSON support lets us store flexible lead data structures while RLS policies ensure secure multi-tenant access. 
-            The Web Speech API provided surprisingly accurate voice recognition for wake word detection, working reliably across different 
-            accents. React's component model with TypeScript caught numerous bugs at compile time, preventing runtime errors in production. 
-            Tailwind's utility-first approach enabled rapid UI development while maintaining consistency through our design system tokens.
+            Gemini's voice capabilities have honestly exceeded our expectations. We were worried about latency killing the natural 
+            conversation flow, but Flash 2.0 responds fast enough that it feels like talking to a person. During our beta testing, 
+            sales reps forgot they were talking to an AI mid-conversation. The model also does an excellent job maintaining context—if 
+            you mention "that prospect from yesterday," it knows who you mean without you repeating the name.
+        </p>
+        <p>
+            The big win with Gemini 1.5 Pro has been email quality. We feed it everything we know about a lead, and it generates 
+            emails that actually sound personal. One beta user told us, "I used to spend 30 minutes researching and writing a 
+            cold email. Now the AI does 80% of it, and I just add my personal touch." The context window is genuinely massive—we've 
+            thrown 50+ page PDFs at it along with email history, and it still pulls out relevant details for personalization.
+        </p>
+        <p>
+            Supabase has been rock solid. We're not DevOps experts, and we don't want to be. Edge Functions just work—write code, 
+            push it, and it's live globally in seconds. We've had zero downtime since launch. The PostgreSQL database with RLS 
+            policies means we never worry about data isolation bugs. Each customer's data is inherently sandboxed at the database 
+            level.
+        </p>
+        <p>
+            The Web Speech API was a pleasant surprise. We thought we'd need a heavyweight solution like Whisper, but the browser's 
+            built-in recognition handles our wake word ("Hey Sarah") really well across different accents and noisy environments. 
+            We just had to tune confidence thresholds to avoid false triggers.
+        </p>
+        <p>
+            TypeScript has saved us countless times. With so many moving pieces—multiple agents, complex state management, async 
+            workflows—the type system catches bugs at compile time that would've been nightmares to debug in production. We've 
+            shipped features confidently knowing the type checker had our back.
         </p>
     </div>
     
     <div class="section">
         <h2>4. What Was Challenging?</h2>
         <p>
-            Voice interaction reliability proved difficult to perfect. Initial implementations suffered from false wake word triggers 
-            and premature conversation cutoffs. We solved this by implementing confidence thresholds and context-aware state management. 
-            Extracting structured lead data from natural language voice commands required extensive regex pattern refinement and validation 
-            logic to handle various phrasing styles. Database persistence verification was initially unreliable—the system would claim 
-            success before confirming writes, causing downstream failures. We added explicit verification queries after all database 
-            operations. Orchestrating multiple AI agents while preventing duplicate actions required careful state management and 
-            deduplication logic in the agent-orchestrator function. Maintaining conversation context across multiple edge function 
-            invocations necessitated implementing a proper conversation history system. Balancing AI autonomy with human oversight 
-            required designing intuitive approval workflows that didn't slow down the sales process. Rate limiting and cost management 
-            for API calls demanded implementing intelligent caching and batching strategies.
+            Voice recognition nearly drove us crazy in the early days. The wake word would trigger randomly when people said things 
+            like "Hey, Sara, did you..." (different name, but similar sound). Or worse, it would cut off mid-sentence because the 
+            speech recognition API thought you were done talking when you were just pausing to think. We ended up implementing a 
+            sliding confidence threshold that adapts based on background noise levels, plus a 2-second silence buffer before assuming 
+            you're done speaking. Not perfect, but way better.
+        </p>
+        <p>
+            Parsing natural language into structured data was harder than expected. Someone might say "Add John Smith who works at 
+            Acme Corporation" or "New lead, John from Acme" or "John Smith, company is Acme Corp." We needed to handle all these 
+            variations. Our initial regex patterns were too rigid and kept missing the company name or putting extra words in the 
+            email field. After way too much debugging, we built a multi-pattern matcher with fallbacks and explicit database 
+            verification after every insertion. Now the system confirms the lead was actually saved before telling the user it worked.
+        </p>
+        <p>
+            The worst bug we had was the system claiming success too early. It would tell the user "Lead created!" but then the 
+            database write would fail silently, so when they asked to email that lead later, the system had no record of it. This 
+            destroyed trust instantly. We fixed it by adding explicit verification queries—after every write, we immediately read 
+            back the data to confirm it's actually there. Adds a tiny bit of latency, but the reliability improvement was worth it.
+        </p>
+        <p>
+            Getting multiple AI agents to work together without stepping on each other was tricky. Early versions would sometimes 
+            draft the same email twice because two agents triggered simultaneously. We implemented a locking mechanism in the 
+            orchestrator that tracks which agent is handling which lead and prevents duplicates. We also had to build a proper 
+            deduplication layer because external triggers (like email webhooks) can fire multiple times.
+        </p>
+        <p>
+            Keeping conversation context across multiple function calls was not straightforward. Edge Functions are stateless by 
+            design, so we had to explicitly store conversation history in the database and reload it on every request. This added 
+            complexity but was necessary for the AI to remember what you discussed five messages ago.
+        </p>
+        <p>
+            Balancing AI autonomy with user control took several iterations. Too much automation and users felt out of control. Too 
+            many approval prompts and the system became annoying. We settled on automatic research and drafting, but human approval 
+            for anything that goes out to a customer. The UI queues up drafts in a review tab, so users can batch-approve during 
+            downtime rather than being interrupted constantly.
         </p>
     </div>
     
     <div class="section">
         <h2>5. How Have We Spent Our Time?</h2>
         <p>
-            Approximately 30% of development time went to building and refining the voice interaction system—wake word detection, 
-            speech recognition, and the Gemini Live integration required extensive testing and iteration. Another 25% was spent 
-            developing the specialized AI agents and their orchestration logic, including prompt engineering to ensure agents 
-            performed their specific tasks reliably. Database design and security configuration consumed 15% of our time, particularly 
-            implementing RLS policies and ensuring proper data isolation. Frontend development and UI/UX refinement took 15%, focusing 
-            on creating an intuitive dashboard that surfaces AI insights clearly. Integration with external APIs (Google Calendar, 
-            Firecrawl, Tavily) represented 10% of effort, handling authentication flows and error cases. The remaining 5% was dedicated 
-            to testing edge cases, debugging production issues, and optimizing performance—particularly reducing API call costs through 
-            smarter caching and improving voice recognition accuracy through confidence tuning and context management.
+            Looking back at our commit history and time logs, the voice system ate up way more time than expected—probably 30% of 
+            total development. Getting wake word detection reliable meant recording ourselves saying hundreds of variations in 
+            different rooms with different background noise. Then we had to tune confidence thresholds, implement silence detection, 
+            and handle edge cases like someone coughing mid-command. Integrating Gemini Live was actually the easier part; the hard 
+            part was all the surrounding UX to make voice feel natural.
+        </p>
+        <p>
+            Building and tuning the AI agents took another 25% of our time. Each agent needed its own specialized prompt, and we 
+            spent weeks iterating on prompt engineering. The email drafting agent went through maybe 50 different prompt variations 
+            before it consistently generated emails that didn't sound robotic. The orchestrator that coordinates all the agents was 
+            its own beast—figuring out which agent should trigger when, preventing duplicates, handling failures gracefully.
+        </p>
+        <p>
+            About 15% of our time went to database design and security. We're not database experts, so learning PostgreSQL's Row 
+            Level Security took time. We had to really think through the schema—how do we model leads, emails, meetings, and agent 
+            actions in a way that's flexible but still maintains referential integrity? We also spent time on indexes and query 
+            optimization because some of our AI agents query the database heavily.
+        </p>
+        <p>
+            Frontend work was maybe 15% of the project. We're using React, which we know well, but designing a dashboard that 
+            surfaces AI insights without overwhelming users took iteration. Early versions had too much information, and beta testers 
+            said they didn't know where to look. We simplified down to tiles showing the most important stuff—today's tasks, 
+            high-priority leads, emails waiting for approval.
+        </p>
+        <p>
+            External API integrations (Google Calendar, Firecrawl, Tavily) consumed about 10% of time. OAuth flows are always 
+            fiddly, and we had to handle token refresh, scope permissions, and error cases where APIs are down or rate-limited.
+        </p>
+        <p>
+            The last 5% was testing, bug fixes, and optimization. We found and fixed that nasty "success before persistence" bug. 
+            We optimized API calls by batching requests and caching company research so we don't re-fetch the same data. We also 
+            did a cost audit after our beta ran up a bigger Gemini bill than expected—turns out we were sending way too much 
+            context on every request. Trimming that down saved us a ton without hurting quality.
         </p>
     </div>
 </body>
