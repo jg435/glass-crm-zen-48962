@@ -158,18 +158,48 @@ serve(async (req) => {
       }
     }
     // 2. Add tasks/reminders (but NOT if it's a follow-up)
-    else if (lowerMessage.includes("remind") || lowerMessage.includes("add task") || lowerMessage.includes("todo")) {
-      const taskTitle = message.replace(/remind me to|add task to|create task to|todo:/gi, "").trim();
+    else if (
+      lowerMessage.includes("remind") || 
+      lowerMessage.includes("add task") || 
+      lowerMessage.includes("create task") ||
+      lowerMessage.includes("create a task") ||
+      lowerMessage.includes("todo")
+    ) {
+      // Extract task title by removing command phrases
+      let taskTitle = message;
+      const patterns = [
+        /^remind me to\s+/i,
+        /^add task of\s+/i,
+        /^add task to\s+/i,
+        /^create a task of\s+/i,
+        /^create a task to\s+/i,
+        /^create task of\s+/i,
+        /^create task to\s+/i,
+        /^todo:\s*/i
+      ];
+      
+      for (const pattern of patterns) {
+        taskTitle = taskTitle.replace(pattern, "");
+      }
+      taskTitle = taskTitle.trim();
+      
       if (taskTitle) {
         const today = new Date();
         today.setHours(today.getHours() + 1);
-        const { error } = await supabase.from("meetings").insert({
+        const { data: newTask, error } = await supabase.from("meetings").insert({
           title: taskTitle,
           scheduled_at: today.toISOString(),
           status: "scheduled",
           lead_id: leadsData.data?.[0]?.id || "00000000-0000-0000-0000-000000000000",
-        });
-        if (!error) actionResults.push("Task added successfully");
+        }).select().single();
+        
+        if (!error && newTask) {
+          actionResults.push(`Task "${taskTitle}" added successfully`);
+          actionsTaken.push({ action: "add_task", task_id: newTask.id, title: taskTitle });
+        } else {
+          console.error("Task creation error:", error);
+          actionResults.push(`Failed to create task: ${error?.message || 'Unknown error'}`);
+        }
       }
     }
 
@@ -199,12 +229,23 @@ serve(async (req) => {
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
     ) {
-      const leadName = message.match(/(?:to|for)\s+([A-Za-z\s]+)/i)?.[1]?.trim();
+      const leadName = message.match(/(?:to|for|about)\s+([A-Za-z\s]+?)(?:\s+about|\s+regarding|$)/i)?.[1]?.trim();
+
+      console.log("Attempting to draft email for lead:", leadName);
 
       if (leadName) {
-        const { data: lead } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`).single();
+        const { data: leads, error: leadError } = await supabase.from("leads").select("*").ilike("name", `%${leadName}%`);
+        
+        if (leadError) {
+          console.error("Lead lookup error:", leadError);
+          actionResults.push(`Error finding lead: ${leadError.message}`);
+        } else if (!leads || leads.length === 0) {
+          console.log("No leads found matching:", leadName);
+          actionResults.push(`Lead "${leadName}" not found in the system`);
+        } else {
+          const lead = leads[0];
+          console.log("Found lead:", lead.name, "with ID:", lead.id);
 
-        if (lead) {
           const { data: campaignData, error: draftError } = await supabase.functions.invoke("draft-email", {
             body: { leadId: lead.id, context: message },
           });
@@ -216,6 +257,7 @@ serve(async (req) => {
             console.error("Draft email function error:", campaignData.error);
             actionResults.push(`Failed to draft email: ${campaignData.error}`);
           } else if (campaignData?.success) {
+            console.log("Email draft created successfully:", campaignData.campaign?.id);
             actionResults.push(
               `Email draft created for ${lead.name}. Check the Emails for Review section to approve it.`,
             );
@@ -228,10 +270,13 @@ serve(async (req) => {
               data: { lead_id: lead.id, campaign_id: campaignData.campaign?.id },
               executed_at: new Date().toISOString(),
             });
+          } else {
+            console.error("Unexpected draft-email response:", campaignData);
+            actionResults.push("Email draft request completed but response unclear");
           }
-        } else {
-          actionResults.push(`Lead "${leadName}" not found`);
         }
+      } else {
+        actionResults.push("Please specify which lead you want to email (e.g., 'draft email to Mike Chen')");
       }
     }
 
