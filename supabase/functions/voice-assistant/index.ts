@@ -335,8 +335,111 @@ serve(async (req) => {
       }
     }
 
-    // 4a. Close, Reject, or Approve actions in the preview dialog
-    if (lowerMessage.includes("close") && (lowerMessage.includes("preview") || lowerMessage.includes("email") || lowerMessage.includes("dialog"))) {
+    // 4a. Edit email draft (subject or body)
+    if ((lowerMessage.includes("edit") || lowerMessage.includes("change") || lowerMessage.includes("update")) && 
+        (lowerMessage.includes("email") || lowerMessage.includes("draft") || lowerMessage.includes("subject") || lowerMessage.includes("body"))) {
+      
+      // Determine what to edit
+      const isSubject = lowerMessage.includes("subject");
+      const isBody = lowerMessage.includes("body");
+      
+      // Extract the new content
+      let newContent: string | null = null;
+      
+      if (isSubject) {
+        // Extract new subject: "edit the subject line to [new subject]" or "change subject to [new subject]"
+        const subjectMatch = message.match(/(?:subject|subject line)\s+(?:to|is)\s+(.+?)(?:\.|$)/i)?.[1]?.trim();
+        if (subjectMatch) {
+          newContent = subjectMatch;
+        }
+      } else if (isBody) {
+        // Extract new body: "change the body to [new body]" or "edit body to [new body]"
+        const bodyMatch = message.match(/body\s+(?:to|is)\s+(.+?)(?:\.|$)/i)?.[1]?.trim();
+        if (bodyMatch) {
+          newContent = bodyMatch;
+        }
+      }
+      
+      if (newContent) {
+        // Extract lead name if specified, otherwise use most recent draft
+        const leadMatch = message.match(/(?:for|to|from)\s+([A-Za-z\s]+?)(?:\s+(?:subject|body)|$)/i)?.[1]?.trim();
+        
+        if (leadMatch) {
+          const { data: leads } = await supabase.from("leads").select("*").ilike("name", `%${leadMatch}%`).limit(1);
+          const lead = leads?.[0];
+          
+          if (lead) {
+            const { data: drafts } = await supabase
+              .from("email_campaigns")
+              .select("*")
+              .eq("lead_id", lead.id)
+              .eq("draft_status", "draft")
+              .order("created_at", { ascending: false })
+              .limit(1);
+            
+            const draft = drafts?.[0];
+            
+            if (draft) {
+              const updateData: any = {};
+              if (isSubject) updateData.subject = newContent;
+              if (isBody) updateData.body = newContent;
+              
+              await supabase
+                .from("email_campaigns")
+                .update(updateData)
+                .eq("id", draft.id);
+              
+              actionResults.push(`Updated email ${isSubject ? 'subject' : 'body'} for ${lead.name}`);
+              actionsTaken.push({ 
+                action: "edit_email_draft", 
+                draft_id: draft.id,
+                field: isSubject ? 'subject' : 'body',
+                new_value: newContent
+              });
+            } else {
+              actionResults.push(`No email draft found for ${lead.name}`);
+            }
+          } else {
+            actionResults.push(`Lead "${leadMatch}" not found`);
+          }
+        } else {
+          // Edit most recent draft
+          const { data: drafts } = await supabase
+            .from("email_campaigns")
+            .select("*, leads(name)")
+            .eq("draft_status", "draft")
+            .order("created_at", { ascending: false })
+            .limit(1);
+          
+          const draft = drafts?.[0];
+          
+          if (draft) {
+            const updateData: any = {};
+            if (isSubject) updateData.subject = newContent;
+            if (isBody) updateData.body = newContent;
+            
+            await supabase
+              .from("email_campaigns")
+              .update(updateData)
+              .eq("id", draft.id);
+            
+            actionResults.push(`Updated email ${isSubject ? 'subject' : 'body'} for ${draft.leads.name}`);
+            actionsTaken.push({ 
+              action: "edit_email_draft", 
+              draft_id: draft.id,
+              field: isSubject ? 'subject' : 'body',
+              new_value: newContent
+            });
+          } else {
+            actionResults.push("No email drafts found to edit");
+          }
+        }
+      } else {
+        actionResults.push(`Please specify the new ${isSubject ? 'subject' : 'body'} content`);
+      }
+    }
+    // 4b. Close, Reject, or Approve actions in the preview dialog
+    else if (lowerMessage.includes("close") && (lowerMessage.includes("preview") || lowerMessage.includes("email") || lowerMessage.includes("dialog"))) {
       uiActions.push({ type: 'close_preview' });
       actionResults.push("Closing email preview");
     }
@@ -352,7 +455,7 @@ serve(async (req) => {
       uiActions.push({ type: 'approve_preview' });
       actionResults.push("Approving and sending email from preview");
     }
-    // 4b. Approve and send emails OR Preview/Open email drafts (from main list)
+    // 4c. Approve and send emails OR Preview/Open email drafts (from main list)
     else if ((lowerMessage.includes("approve") || lowerMessage.includes("send") || lowerMessage.includes("yes")) && 
         (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
       // Get the most recent draft email
@@ -410,7 +513,7 @@ serve(async (req) => {
         actionResults.push("No draft emails found to approve. Would you like me to draft an email?");
       }
     }
-    // 4b. Preview/Open specific email draft
+    // 4d. Preview/Open specific email draft
     else if ((lowerMessage.includes("open") || lowerMessage.includes("preview") || lowerMessage.includes("view") || lowerMessage.includes("show")) && 
         (lowerMessage.includes("email") || lowerMessage.includes("draft"))) {
       
@@ -469,7 +572,7 @@ serve(async (req) => {
         }
       }
     }
-    // 4c. Draft emails - only trigger on draft/create/write email commands
+    // 4e. Draft emails - only trigger on draft/create/write email commands
     else if (
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
@@ -1130,8 +1233,9 @@ IMPORTANT CAPABILITIES:
 EMAIL WORKFLOW:
 1. Draft emails for leads with "draft email to [Lead Name] about [topic]"
 2. Tell user to review the draft in the "Emails for Review" section
-3. When user says "approve" or "send the email" or "yes", the most recent draft will be sent immediately
-4. Confirm when email has been sent successfully
+3. Edit email drafts with "edit the subject line to [new subject]" or "change the body to [new body]"
+4. When user says "approve" or "send the email" or "yes", the most recent draft will be sent immediately
+5. Confirm when email has been sent successfully
 
 UI NAVIGATION COMMANDS:
 - "Open settings" - Opens the settings modal
