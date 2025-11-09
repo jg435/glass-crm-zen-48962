@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface BackgroundSettings {
   imageUrl: string | null;
@@ -7,13 +7,23 @@ interface BackgroundSettings {
 
 const STORAGE_KEY = 'crm-background-settings';
 
-export const useBackgroundImage = () => {
+type BackgroundImageContextValue = {
+  backgroundImage: string | null;
+  opacity: number;
+  setBackgroundImage: (file: File) => Promise<void>;
+  removeBackground: () => void;
+  setOpacity: (opacity: number) => void;
+};
+
+const BackgroundImageContext = createContext<BackgroundImageContextValue | undefined>(undefined);
+
+export const BackgroundImageProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<BackgroundSettings>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       const parsed = stored ? JSON.parse(stored) : { opacity: 0.85 };
       // Note: imageUrl won't persist between sessions to avoid localStorage quota issues
-      return { imageUrl: null, opacity: parsed.opacity || 0.85 };
+      return { imageUrl: null, opacity: parsed.opacity ?? 0.85 };
     } catch (error) {
       return { imageUrl: null, opacity: 0.85 };
     }
@@ -53,11 +63,32 @@ export const useBackgroundImage = () => {
     setSettings(prev => ({ ...prev, opacity }));
   };
 
-  return {
-    backgroundImage: settings.imageUrl,
-    opacity: settings.opacity,
-    setBackgroundImage,
-    removeBackground,
-    setOpacity,
-  };
+  return (
+    <BackgroundImageContext.Provider
+      value={{
+        backgroundImage: settings.imageUrl,
+        opacity: settings.opacity,
+        setBackgroundImage,
+        removeBackground,
+        setOpacity,
+      }}
+    >
+      {children}
+    </BackgroundImageContext.Provider>
+  );
+};
+
+export const useBackgroundImage = () => {
+  const ctx = useContext(BackgroundImageContext);
+  if (!ctx) {
+    console.warn('useBackgroundImage must be used within a BackgroundImageProvider');
+    return {
+      backgroundImage: null,
+      opacity: 0.85,
+      setBackgroundImage: async () => {},
+      removeBackground: () => {},
+      setOpacity: () => {},
+    } as BackgroundImageContextValue;
+  }
+  return ctx;
 };
