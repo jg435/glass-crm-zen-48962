@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales Assistant - Project Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        h2 {
+            color: #1e40af;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        p {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .print-button {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .print-button:hover {
+            background: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">Print to PDF</button>
+    
+    <h1>Autonomous AI Sales Assistant Platform - Project Report</h1>
+    
+    <div class="section">
+        <h2>1. Challenge We Have Tackled</h2>
+        <p>
+            Sales teams spend 65% of their time on non-revenue generating activities like research, email drafting, and data entry. 
+            We built an autonomous AI sales assistant that handles these repetitive tasks while maintaining human oversight for critical 
+            decisions. The platform features a voice-activated interface powered by wake word detection, allowing sales professionals 
+            to interact naturally with the system. Our solution orchestrates multiple specialized AI agents that work collaboratively: 
+            a Lead Scoring Agent analyzes prospect quality, an Email Monitoring Agent tracks engagement, a Meeting Preparation Agent 
+            researches prospects, a Follow-up Scheduler automates outreach timing, and a Deal Pipeline Manager tracks opportunities. 
+            The system integrates real-time voice capabilities for live sales calls, where the AI acts as a co-pilot providing insights 
+            and suggestions during conversations. A manager-in-the-loop workflow ensures all AI-generated content is reviewed before 
+            sending, maintaining quality control while dramatically reducing manual work.
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2>2. Tools / ML Models We Have Used</h2>
+        <p>
+            Our tech stack centers on Google's Gemini AI models accessed through the Lovable AI Gateway. We primarily use 
+            <strong>Gemini 2.0 Flash</strong> for real-time voice interactions due to its low latency and multimodal capabilities, 
+            enabling natural conversation during live meetings. For complex reasoning tasks like lead analysis and email composition, 
+            we leverage <strong>Gemini 1.5 Pro</strong>, which excels at understanding context and generating professional communications. 
+            The backend runs on <strong>Supabase Edge Functions</strong> (Deno runtime) for serverless compute, with 
+            <strong>PostgreSQL</strong> for data persistence and <strong>Row Level Security policies</strong> for data protection. 
+            The frontend is built with <strong>React</strong>, <strong>TypeScript</strong>, and <strong>Tailwind CSS</strong> for a 
+            responsive interface. We implemented custom <strong>wake word detection</strong> using the Web Speech API for voice activation, 
+            and integrated <strong>Firecrawl API</strong> for web scraping to gather prospect intelligence. The <strong>Tavily API</strong> 
+            provides company research capabilities, while <strong>Google Calendar API</strong> handles meeting scheduling integration.
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2>3. What Has Worked Well With These Tools?</h2>
+        <p>
+            Gemini's multimodal capabilities have been exceptional for our use case. The real-time API enables fluid voice conversations 
+            with minimal latency, creating a natural experience during sales calls. The model's ability to maintain context across long 
+            conversations (up to 1M tokens) means it remembers previous interactions and prospect details without re-prompting. Supabase 
+            Edge Functions deploy instantly and scale automatically, allowing rapid iteration on AI agent logic without infrastructure 
+            management. The Lovable AI Gateway eliminated the need for API key management, simplifying deployment significantly. 
+            PostgreSQL's JSON support lets us store flexible lead data structures while RLS policies ensure secure multi-tenant access. 
+            The Web Speech API provided surprisingly accurate voice recognition for wake word detection, working reliably across different 
+            accents. React's component model with TypeScript caught numerous bugs at compile time, preventing runtime errors in production. 
+            Tailwind's utility-first approach enabled rapid UI development while maintaining consistency through our design system tokens.
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2>4. What Was Challenging?</h2>
+        <p>
+            Voice interaction reliability proved difficult to perfect. Initial implementations suffered from false wake word triggers 
+            and premature conversation cutoffs. We solved this by implementing confidence thresholds and context-aware state management. 
+            Extracting structured lead data from natural language voice commands required extensive regex pattern refinement and validation 
+            logic to handle various phrasing styles. Database persistence verification was initially unreliable—the system would claim 
+            success before confirming writes, causing downstream failures. We added explicit verification queries after all database 
+            operations. Orchestrating multiple AI agents while preventing duplicate actions required careful state management and 
+            deduplication logic in the agent-orchestrator function. Maintaining conversation context across multiple edge function 
+            invocations necessitated implementing a proper conversation history system. Balancing AI autonomy with human oversight 
+            required designing intuitive approval workflows that didn't slow down the sales process. Rate limiting and cost management 
+            for API calls demanded implementing intelligent caching and batching strategies.
+        </p>
+    </div>
+    
+    <div class="section">
+        <h2>5. How Have We Spent Our Time?</h2>
+        <p>
+            Approximately 30% of development time went to building and refining the voice interaction system—wake word detection, 
+            speech recognition, and the Gemini Live integration required extensive testing and iteration. Another 25% was spent 
+            developing the specialized AI agents and their orchestration logic, including prompt engineering to ensure agents 
+            performed their specific tasks reliably. Database design and security configuration consumed 15% of our time, particularly 
+            implementing RLS policies and ensuring proper data isolation. Frontend development and UI/UX refinement took 15%, focusing 
+            on creating an intuitive dashboard that surfaces AI insights clearly. Integration with external APIs (Google Calendar, 
+            Firecrawl, Tavily) represented 10% of effort, handling authentication flows and error cases. The remaining 5% was dedicated 
+            to testing edge cases, debugging production issues, and optimizing performance—particularly reducing API call costs through 
+            smarter caching and improving voice recognition accuracy through confidence tuning and context management.
+        </p>
+    </div>
+</body>
+</html>
