@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WakeWordDetector } from "@/utils/WakeWordDetection";
+import { findTileByQuery, executeAction } from "@/utils/tile-routes";
 
 interface Message {
   role: "user" | "assistant";
@@ -204,6 +205,34 @@ const AIAssistant = ({
 
       if (error) throw error;
 
+      // Check for navigation/interaction actions from query
+      const tile = findTileByQuery(query);
+      if (tile) {
+        setHighlightedTile({ id: tile.id, name: tile.name });
+        
+        // Execute view action (scroll to tile)
+        if (tile.actions.view) {
+          setTimeout(() => {
+            const scrollSuccess = executeAction(tile.actions.view!);
+            if (scrollSuccess) {
+              console.log(`Navigated to ${tile.name}`);
+            }
+          }, 100);
+        }
+        
+        // Execute interaction if query suggests it
+        const shouldInteract = query.toLowerCase().includes('open') || 
+                              query.toLowerCase().includes('click') || 
+                              query.toLowerCase().includes('show') || 
+                              query.toLowerCase().includes('expand');
+        
+        if (tile.actions.interact && shouldInteract) {
+          setTimeout(() => {
+            executeAction(tile.actions.interact!);
+          }, 1000);
+        }
+      }
+
       // Handle UI actions from response
       if (data.actions) {
         for (const action of data.actions) {
@@ -234,24 +263,6 @@ const AIAssistant = ({
       const updatedHistory = [...newHistory, assistantMessage];
       setConversationHistory(updatedHistory);
       setCurrentMessage(data.message);
-      
-      // Determine which tile to highlight based on the query
-      const lowerQuery = query.toLowerCase();
-      if (lowerQuery.includes('lead') || lowerQuery.includes('contact')) {
-        setHighlightedTile({ id: 'contacts', name: 'Contacts' });
-      } else if (lowerQuery.includes('deal') || lowerQuery.includes('proposal')) {
-        setHighlightedTile({ id: 'deals', name: 'Deals' });
-      } else if (lowerQuery.includes('follow') || lowerQuery.includes('followup')) {
-        setHighlightedTile({ id: 'followups', name: 'Follow-ups' });
-      } else if (lowerQuery.includes('task') || lowerQuery.includes('today') || lowerQuery.includes('remind')) {
-        setHighlightedTile({ id: 'tasks', name: 'Tasks' });
-      } else if (lowerQuery.includes('meeting') || lowerQuery.includes('calendar')) {
-        setHighlightedTile({ id: 'calendar', name: 'Calendar' });
-      } else if (lowerQuery.includes('dashboard') || lowerQuery.includes('overview')) {
-        setHighlightedTile({ id: 'dashboard', name: 'Dashboard' });
-      } else if (lowerQuery.includes('email') || lowerQuery.includes('draft') || lowerQuery.includes('review')) {
-        setHighlightedTile({ id: 'email-review', name: 'Emails for Review' });
-      }
 
       console.log('Response received, will hide overlay to show tile');
       
