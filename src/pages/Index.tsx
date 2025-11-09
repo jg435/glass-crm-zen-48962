@@ -25,7 +25,7 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen pb-6 relative"
+      className="h-screen overflow-hidden relative"
       style={{
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
         backgroundSize: 'cover',
@@ -44,9 +44,9 @@ const Index = () => {
         onScheduleClick={() => setMeetingOpen(true)}
       />
       
-      <main className="px-4 max-w-[1800px] mx-auto">
+      <main className="px-4 max-w-[1800px] mx-auto h-[calc(100vh-100px)] overflow-hidden">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-[calc(100vh-140px)]"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}
