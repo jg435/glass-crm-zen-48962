@@ -61,8 +61,8 @@ const TodaysTasksTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-ai p-4 hover-scale h-full flex flex-col overflow-hidden">
-      <h2 className="text-lg font-semibold mb-3">Today's Tasks</h2>
+    <div className="glass-tile gradient-ai p-3 hover-scale h-full flex flex-col overflow-hidden">
+      <h2 className="text-lg font-semibold mb-2">Today's Tasks</h2>
       
       <div className="space-y-2 overflow-auto custom-scrollbar flex-1">
         {tasks.length === 0 ? (
@@ -93,7 +93,7 @@ const TodaysTasksTile = () => {
       </div>
 
       {tasks.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/30">
+        <div className="mt-2 pt-2 border-t border-white/30">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{tasks.filter(t => t.status === 'completed').length} of {tasks.length} completed</span>
             <span>{tasks.filter(t => t.status !== 'completed' && getPriorityColor(t.scheduled_at).includes('destructive')).length} high priority</span>

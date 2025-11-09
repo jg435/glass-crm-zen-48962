@@ -44,9 +44,9 @@ const Index = () => {
         onScheduleClick={() => setMeetingOpen(true)}
       />
       
-      <main className="px-4 max-w-[1800px] mx-auto h-[calc(100vh-100px)] overflow-hidden">
+      <main className="px-3 max-w-[1800px] mx-auto h-[calc(100vh-90px)] overflow-hidden">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 h-full"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}

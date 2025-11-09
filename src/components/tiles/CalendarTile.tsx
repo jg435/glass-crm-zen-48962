@@ -123,11 +123,11 @@ const CalendarTile = () => {
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
   return (
-    <div className="glass-tile gradient-calendar p-4 hover-scale h-full flex flex-col overflow-hidden">
-      <h2 className="text-lg font-semibold mb-3">Calendar</h2>
+    <div className="glass-tile gradient-calendar p-3 hover-scale h-full flex flex-col overflow-hidden">
+      <h2 className="text-lg font-semibold mb-2">Calendar</h2>
       
-      <Card className="p-3 bg-white/60 border-white/40 flex-1 flex flex-col">
-        <div className="flex items-center justify-between mb-3">
+      <Card className="p-2.5 bg-white/60 border-white/40 flex-1 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={handlePrevMonth}>
             <ChevronLeft className="h-3 w-3" />
           </Button>
@@ -145,7 +145,7 @@ const CalendarTile = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1 mb-3">
+        <div className="grid grid-cols-7 gap-1 mb-2">
           {Array.from({ length: startDayOfWeek }).map((_, index) => (
             <div key={`empty-${index}`} />
           ))}
@@ -173,7 +173,7 @@ const CalendarTile = () => {
           })}
         </div>
 
-        <div className="pt-3 border-t border-white/40 overflow-y-auto custom-scrollbar">
+        <div className="pt-2 border-t border-white/40 overflow-y-auto custom-scrollbar">
           <h4 className="text-xs font-medium mb-2">Upcoming</h4>
           <div className="space-y-1.5">
             {upcomingMeetings.length === 0 && upcomingDeals.length === 0 ? (

@@ -86,8 +86,8 @@ const FollowUpsTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-followups p-4 hover-scale h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass-tile gradient-followups p-3 hover-scale h-full flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">Follow-ups</h2>
         {totalCount > 0 && (
           <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">
@@ -96,7 +96,7 @@ const FollowUpsTile = () => {
         )}
       </div>
       
-      <div className="space-y-3 overflow-auto custom-scrollbar flex-1">
+      <div className="space-y-2 overflow-auto custom-scrollbar flex-1">
         {followUps.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
             All caught up! 🎉
@@ -107,9 +107,9 @@ const FollowUpsTile = () => {
             return (
               <Card
                 key={followUp.id}
-                className={`p-4 bg-white/60 border-white/40 hover:bg-white/80 transition-all ${getUrgencyStyles(followUp.next_followup_at)}`}
+                className={`p-3 bg-white/60 border-white/40 hover:bg-white/80 transition-all ${getUrgencyStyles(followUp.next_followup_at)}`}
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-1">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-sm">{followUp.name}</h4>
