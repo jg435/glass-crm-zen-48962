@@ -111,6 +111,75 @@ export const clickDialogButton = (buttonText: string): boolean => {
 };
 
 /**
+ * Submit the currently open form
+ */
+export const submitCurrentForm = (formType: string): boolean => {
+  try {
+    console.log(`Submitting ${formType} form`);
+
+    // Map form types to their submit button text
+    const submitButtons: Record<string, string[]> = {
+      lead_edit: ['save changes', 'save'],
+      meeting_scheduler: ['schedule', 'create meeting'],
+      lead_generation: ['search', 'find leads', 'generate']
+    };
+
+    const buttonTexts = submitButtons[formType] || ['submit', 'save'];
+
+    // Try each button text until one succeeds
+    for (const buttonText of buttonTexts) {
+      if (clickDialogButton(buttonText)) {
+        console.log(`✓ Form submitted via: ${buttonText}`);
+        return true;
+      }
+    }
+
+    console.warn(`No submit button found for ${formType}`);
+    return false;
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    return false;
+  }
+};
+
+/**
+ * Get summary of filled form data
+ */
+export const getFormSummary = (formType: string): string | null => {
+  try {
+    const formSelectors: Record<string, Record<string, string>> = {
+      lead_edit: {
+        name: '#name',
+        email: '#email',
+        phone: '#phone',
+        company: '#company',
+        industry: '#industry'
+      },
+      meeting_scheduler: {
+        title: '#title',
+        datetime: '#datetime'
+      }
+    };
+
+    const selectors = formSelectors[formType];
+    if (!selectors) return null;
+
+    const summary: string[] = [];
+    Object.entries(selectors).forEach(([fieldName, selector]) => {
+      const element = document.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement;
+      if (element && element.value) {
+        summary.push(`${fieldName}: ${element.value}`);
+      }
+    });
+
+    return summary.length > 0 ? summary.join(', ') : null;
+  } catch (error) {
+    console.error('Error getting form summary:', error);
+    return null;
+  }
+};
+
+/**
  * Open a specific dialog/modal
  */
 export const openDialog = (dialogType: string): boolean => {

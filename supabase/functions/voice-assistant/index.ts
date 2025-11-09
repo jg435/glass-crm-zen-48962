@@ -197,6 +197,33 @@ serve(async (req) => {
       }
     }
 
+    // Form Submission Commands
+    if ((lowerMessage.includes("submit") || lowerMessage.includes("save")) && 
+        (lowerMessage.includes("form") || lowerMessage.includes("changes"))) {
+      
+      let formType = null;
+      if (lowerMessage.includes("lead") || lowerMessage.includes("contact")) {
+        formType = 'lead_edit';
+      } else if (lowerMessage.includes("meeting")) {
+        formType = 'meeting_scheduler';
+      }
+
+      if (formType) {
+        const requiresConfirmation = !lowerMessage.includes("without confirm");
+        uiActions.push({ 
+          type: 'submit_form', 
+          formType,
+          requiresConfirmation 
+        });
+        actionResults.push(requiresConfirmation ? 
+          `Preparing to submit ${formType}. I'll ask for confirmation first.` :
+          `Submitting ${formType} immediately`
+        );
+      } else {
+        actionResults.push("Please specify which form to submit (lead or meeting)");
+      }
+    }
+
     // 1. Set follow-ups (check this FIRST before tasks/reminders)
     if (lowerMessage.includes("follow up") || lowerMessage.includes("followup")) {
       const leadName = message.match(/with\s+([A-Za-z\s]+?)(?:\s+on\s+|\s+tomorrow|\s+next|$)/i)?.[1]?.trim();

@@ -26,6 +26,11 @@ interface AIAssistantProps {
   onNavigateToLead?: (leadId: string) => void;
 }
 
+interface PendingSubmission {
+  formType: string;
+  summary: string;
+}
+
 const AIAssistant = ({ 
   onOpenSettings, 
   onOpenLeadGen, 
@@ -39,6 +44,7 @@ const AIAssistant = ({
   const [assistantState, setAssistantState] = useState<AssistantState>('listening-wake');
   const [highlightedTile, setHighlightedTile] = useState<HighlightedTile | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
+  const [pendingSubmission, setPendingSubmission] = useState<PendingSubmission | null>(null);
   const { toast } = useToast();
   const wakeWordDetectorRef = useRef<WakeWordDetector | null>(null);
   const queryRecognitionRef = useRef<any>(null);
@@ -175,6 +181,7 @@ const AIAssistant = ({
     // Check for "End CRM" command
     if (query.toLowerCase().includes('end crm')) {
       setCurrentMessage("Goodbye! Say 'Hey CRM' anytime you need me.");
+      setPendingSubmission(null);
       setTimeout(() => {
         setIsActive(false);
         setCurrentMessage("");
@@ -186,6 +193,44 @@ const AIAssistant = ({
         setTimeout(() => startWakeWordDetection(), 500);
       }, 2000);
       return;
+    }
+
+    // Handle form submission confirmation
+    if (pendingSubmission) {
+      const lowerQuery = query.toLowerCase();
+      if (lowerQuery.includes('yes') || lowerQuery.includes('confirm') || lowerQuery.includes('submit')) {
+        const { submitCurrentForm } = await import('@/utils/form-filler');
+        const success = submitCurrentForm(pendingSubmission.formType);
+        
+        if (success) {
+          setCurrentMessage("Form submitted successfully!");
+          setPendingSubmission(null);
+          
+          setTimeout(() => {
+            setIsActive(false);
+            setCurrentMessage("");
+            setUserQuery("");
+            setHighlightedTile(null);
+            isProcessingRef.current = false;
+            setAssistantState('listening-wake');
+            setTimeout(() => startWakeWordDetection(), 500);
+          }, 2000);
+        } else {
+          setCurrentMessage("Failed to submit form. Please try manually.");
+          setPendingSubmission(null);
+          setTimeout(() => {
+            startQueryRecognition();
+          }, 2000);
+        }
+        return;
+      } else if (lowerQuery.includes('no') || lowerQuery.includes('cancel')) {
+        setCurrentMessage("Form submission cancelled.");
+        setPendingSubmission(null);
+        setTimeout(() => {
+          startQueryRecognition();
+        }, 2000);
+        return;
+      }
     }
 
     try {
@@ -228,6 +273,9 @@ const AIAssistant = ({
               break;
             case 'fill_form':
               await handleFormFill(action as FormFillAction & { leadId?: string });
+              break;
+            case 'submit_form':
+              await handleFormSubmit(action.formType, action.requiresConfirmation);
               break;
           }
         }
@@ -343,12 +391,56 @@ const AIAssistant = ({
     }
   };
 
+  const handleFormSubmit = async (formType: string, requiresConfirmation: boolean = true) => {
+    console.log('Form submit action:', formType, 'requires confirmation:', requiresConfirmation);
+    
+    try {
+      if (requiresConfirmation) {
+        const { getFormSummary } = await import('@/utils/form-filler');
+        const summary = getFormSummary(formType);
+        
+        if (summary) {
+          setPendingSubmission({ formType, summary });
+          setCurrentMessage(`Ready to submit. Current values: ${summary}. Say "yes" to confirm or "no" to cancel.`);
+          
+          // Continue listening for confirmation
+          setTimeout(() => {
+            startQueryRecognition();
+          }, 3000);
+        } else {
+          setCurrentMessage("No form data to submit.");
+        }
+      } else {
+        const { submitCurrentForm } = await import('@/utils/form-filler');
+        const success = submitCurrentForm(formType);
+        
+        if (success) {
+          setCurrentMessage("Form submitted successfully!");
+          toast({
+            title: "Form Submitted",
+            description: "Your changes have been saved"
+          });
+        } else {
+          setCurrentMessage("Failed to submit form. Please try manually.");
+        }
+      }
+    } catch (error) {
+      console.error('Error in form submit:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit form",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleDismiss = () => {
     console.log('Dismissing overlay, restarting wake word detection');
     setIsActive(false);
     setCurrentMessage("");
     setUserQuery("");
     setHighlightedTile(null);
+    setPendingSubmission(null);
     isProcessingRef.current = false;
     
     if (queryRecognitionRef.current) {
@@ -436,6 +528,12 @@ const AIAssistant = ({
                     </div>
                     <div className="flex-1">
                       <p className="text-lg leading-relaxed">{currentMessage}</p>
+                      {pendingSubmission && (
+                        <div className="mt-4 p-4 bg-warning/10 rounded-xl border border-warning/20">
+                          <p className="text-sm font-semibold text-warning mb-2">⚠️ Confirmation Required</p>
+                          <p className="text-sm opacity-90">Say "yes" to submit or "no" to cancel</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
