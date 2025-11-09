@@ -14,8 +14,14 @@ export const useBackgroundImage = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+    try {
+      // Only persist opacity, not the full image data to avoid quota issues
+      const settingsToStore = { imageUrl: null, opacity: settings.opacity };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToStore));
+    } catch (error) {
+      console.warn('Failed to save background settings:', error);
+    }
+  }, [settings.opacity]);
 
   const setBackgroundImage = (file: File) => {
     return new Promise<void>((resolve, reject) => {
