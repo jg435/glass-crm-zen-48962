@@ -1,1 +1,49 @@
 project_id = "nbfwygkifdklvigbtxwq"
+
+[functions.agent-orchestrator]
+verify_jwt = false
+
+[functions.auto-deal-creator]
+verify_jwt = false
+
+[functions.auto-followup-scheduler]
+verify_jwt = false
+
+[functions.deal-intelligence]
+verify_jwt = false
+
+[functions.draft-email]
+verify_jwt = false
+
+[functions.email-reply-handler]
+verify_jwt = false
+
+[functions.gemini-live-session]
+verify_jwt = false
+
+[functions.generate-leads]
+verify_jwt = false
+
+[functions.get-ai-summary]
+verify_jwt = false
+
+[functions.google-calendar-sync]
+verify_jwt = false
+
+[functions.lead-generation-agent]
+verify_jwt = false
+
+[functions.meeting-voice-agent]
+verify_jwt = false
+
+[functions.profile-discovery]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.send-followup-emails]
+verify_jwt = false
+
+[functions.voice-assistant]
+verify_jwt = false
