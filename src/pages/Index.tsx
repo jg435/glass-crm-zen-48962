@@ -24,19 +24,22 @@ const Index = () => {
   const [meetingOpen, setMeetingOpen] = useState(false);
 
   return (
-    <div 
-      className="min-h-screen pb-6 relative"
-      style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-      }}
-    >
+    <>
       {backgroundImage && (
-        <div className="fixed inset-0 bg-background/5 z-0 pointer-events-none" />
+        <div 
+          className="fixed inset-0 z-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
       )}
-      <div className="relative z-10">
+      {backgroundImage && (
+        <div className="fixed inset-0 bg-background/5 z-[1] pointer-events-none" />
+      )}
+      <div className="min-h-screen pb-6 relative z-10">
       <TopNav
         onSettingsClick={() => setSettingsOpen(true)}
         onAddLeadClick={() => setLeadGenOpen(true)}
@@ -96,7 +99,7 @@ const Index = () => {
       <EmailCampaignsView open={emailsOpen} onOpenChange={setEmailsOpen} />
       <MeetingScheduler open={meetingOpen} onOpenChange={setMeetingOpen} />
       </div>
-    </div>
+    </>
   );
 };
 
