@@ -98,6 +98,10 @@ All colors MUST be HSL.
     @apply bg-white/80 backdrop-blur-xl border border-white/30 rounded-[24px] shadow-[0_4px_16px_rgba(0,0,0,0.08)];
   }
   
+  .custom-tile-bg > * {
+    opacity: var(--tile-opacity, 1);
+  }
+  
   .hover-scale {
     @apply transition-all duration-300 hover:scale-[1.02] hover:brightness-[1.04];
   }
