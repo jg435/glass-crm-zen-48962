@@ -34,7 +34,7 @@ const Index = () => {
       }}
     >
       {backgroundImage && (
-        <div className="fixed inset-0 bg-background/[0.02] z-0 pointer-events-none" />
+        <div className="fixed inset-0 bg-background/5 z-0 pointer-events-none" />
       )}
       <div className="relative z-10">
       <TopNav
