@@ -386,19 +386,24 @@ serve(async (req) => {
     // 7. Add new leads - with conversational gathering
     if (lowerMessage.includes("add lead") || lowerMessage.includes("new lead") || lowerMessage.includes("create lead")) {
       // Extract information from current message - ALWAYS from the current message
-      console.log("DEBUG: Attempting to extract lead data from:", message);
+      console.log("🔍 Attempting to extract lead data from:", message);
       
+      // Extract lead information with improved patterns
       const nameMatch = message
-        .match(/(?:name[d]?\s+is\s+|called\s+|his\s+name\s+is\s+|her\s+name\s+is\s+|named\s+)([A-Za-z\s]+?)(?:,|\s+and|\s+with|\s+e-?mail|\s+from|\s+at|\s+phone|\s+mobile|$)/i)?.[1]
-        ?.trim();
-      console.log("DEBUG: Name match result:", nameMatch);
+        .match(/(?:lead\s+)?named\s+([A-Za-z\s]+?)(?:,|$)/i)?.[1]?.trim() ||
+        message.match(/name[d]?\s+is\s+([A-Za-z\s]+?)(?:,|$)/i)?.[1]?.trim();
       
       const emailMatch = message
-        .match(/e-?mail[:\s]+(?:is\s+|address\s+is\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
+        .match(/e-?mail[:\s]+(?:is\s+)?([\w.+-]+@[\w.-]+\.\w+)/i)?.[1]
         ?.replace(/\s+/g, "")
         .trim();
-      const companyMatch = message.match(/(?:from|at|company|works\s+at|works\s+for|he\s+works\s+for|she\s+works\s+for|for\s+)([A-Za-z\s&]+?)(?:\s+and|\s+e-?mail|\s+phone|\s+mobile|,|$)/i)?.[1]?.trim();
-      const phoneMatch = message.match(/(?:phone|mobile|number)[:\s]+(?:is\s+|number\s+is\s+)?([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
+      
+      // Company: prioritize "works for/at" patterns
+      const companyMatch = message.match(/works\s+(?:for|at)\s+([A-Za-z\s&]+?)(?:,|$)/i)?.[1]?.trim() ||
+        message.match(/company\s+(?:is\s+)?([A-Za-z\s&]+?)(?:,|$)/i)?.[1]?.trim() ||
+        message.match(/from\s+([A-Za-z\s&]+?)(?:,|$)/i)?.[1]?.trim();
+      
+      const phoneMatch = message.match(/(?:phone|mobile|number)[:\s]+(?:is\s+)?([\d\s\-\+\(\)]+)/i)?.[1]?.trim();
 
       const leadData = {
         name: nameMatch || null,
@@ -407,10 +412,12 @@ serve(async (req) => {
         phone: phoneMatch || null,
       };
 
-      console.log("Lead data gathered from current message:", leadData);
+      console.log("📋 Lead data extracted:", leadData);
 
       // Check if we have ALL required info before creating lead
       if (leadData.name && leadData.email && leadData.company) {
+        console.log("✅ All required fields present, attempting database insert...");
+        
         // We have minimum required info (name, email, company)
         const { data: newLead, error } = await supabase
           .from("leads")
@@ -420,30 +427,53 @@ serve(async (req) => {
             company: leadData.company,
             phone: leadData.phone || null,
             status: "new",
-            source: "manual", // Changed from voice_assistant to manual
+            source: "manual",
             lead_score: 50,
           })
           .select()
           .single();
 
-        if (!error && newLead) {
-          uiActions.push({ type: 'highlight_tile', tile: 'contacts' });
-          actionResults.push(
-            `✓ Lead created: ${leadData.name} from ${leadData.company}${leadData.phone ? ` (${leadData.phone})` : ""}`
-          );
-          actionsTaken.push({ action: "add_lead", lead_id: newLead.id, ...leadData });
-
-          // Log as agent action
-          await supabase.from("agent_actions").insert({
-            agent_type: "voice_assistant",
-            action_type: "lead_created",
-            status: "completed",
-            data: { lead_id: newLead.id, ...leadData },
-            executed_at: new Date().toISOString(),
-          });
+        if (error) {
+          console.error("❌ DATABASE INSERT FAILED:", error);
+          actionResults.push(`FAILED to create lead ${leadData.name}: ${error.message}`);
+        } else if (!newLead || !newLead.id) {
+          console.error("❌ NO DATA RETURNED from insert");
+          actionResults.push(`FAILED to create lead ${leadData.name}: No data returned`);
         } else {
-          console.error("Lead creation error:", error);
-          actionResults.push(`I was unable to add the new lead: ${error?.message || 'Unknown error'}`);
+          console.log("✅ DATABASE INSERT SUCCESS:", newLead.id);
+          
+          // Verify lead exists immediately after insert
+          const { data: verifyLead, error: verifyError } = await supabase
+            .from("leads")
+            .select("id, name, email, company")
+            .eq("id", newLead.id)
+            .single();
+          
+          if (verifyError || !verifyLead) {
+            console.error("❌ VERIFICATION FAILED: Lead not found after insert!", newLead.id);
+            actionResults.push(`WARNING: Lead ${leadData.name} insert reported success but not found in database!`);
+          } else {
+            console.log("✅ VERIFIED: Lead exists in database:", verifyLead);
+            
+            uiActions.push({ type: 'highlight_tile', tile: 'contacts' });
+            actionResults.push(
+              `✓ Lead created: ${leadData.name} from ${leadData.company}${leadData.phone ? ` (${leadData.phone})` : ""}`
+            );
+            actionsTaken.push({ 
+              action: "add_lead", 
+              lead_id: newLead.id, 
+              ...leadData 
+            });
+
+            // Log as agent action
+            await supabase.from("agent_actions").insert({
+              agent_type: "voice_assistant",
+              action_type: "lead_created",
+              status: "completed",
+              data: { lead_id: newLead.id, ...leadData },
+              executed_at: new Date().toISOString(),
+            });
+          }
         }
       } else {
         // We don't have all required info - tell them what's missing
@@ -452,6 +482,7 @@ serve(async (req) => {
         if (!leadData.email) missing.push("email");
         if (!leadData.company) missing.push("company");
         
+        console.log("❌ Missing required fields:", missing);
         actionResults.push(
           `I need the following information to create the lead: ${missing.join(", ")}. Please provide all details together in one message.`
         );
