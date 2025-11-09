@@ -34,8 +34,9 @@ const Index = () => {
       }}
     >
       {backgroundImage && (
-        <div className="fixed inset-0 bg-background/40 backdrop-blur-sm -z-10" />
+        <div className="fixed inset-0 bg-background/40 backdrop-blur-sm z-0 pointer-events-none" />
       )}
+      <div className="relative z-10">
       <TopNav
         onSettingsClick={() => setSettingsOpen(true)}
         onAddLeadClick={() => setLeadGenOpen(true)}
@@ -94,6 +95,7 @@ const Index = () => {
       <LeadGenerationModal open={leadGenOpen} onOpenChange={setLeadGenOpen} />
       <EmailCampaignsView open={emailsOpen} onOpenChange={setEmailsOpen} />
       <MeetingScheduler open={meetingOpen} onOpenChange={setMeetingOpen} />
+      </div>
     </div>
   );
 };
