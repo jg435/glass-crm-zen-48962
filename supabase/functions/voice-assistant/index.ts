@@ -229,7 +229,23 @@ serve(async (req) => {
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
       lowerMessage.includes("email")
     ) {
-      const leadName = message.match(/(?:to|for|about)\s+([A-Za-z\s]+?)(?:\s+about|\s+regarding|$)/i)?.[1]?.trim();
+      // Extract lead name - look for patterns like "email to [Name]" or "email for [Name]"
+      let leadName = null;
+      
+      // Try multiple patterns
+      const patterns = [
+        /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)/i,  // "email to Sarah Johnson"
+        /(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding)/i,  // "to Sarah about"
+        /(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)$/i  // "to Sarah" at end
+      ];
+      
+      for (const pattern of patterns) {
+        const match = message.match(pattern);
+        if (match && match[1]) {
+          leadName = match[1].trim();
+          break;
+        }
+      }
 
       console.log("Attempting to draft email for lead:", leadName);
 
