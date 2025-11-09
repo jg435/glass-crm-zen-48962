@@ -9,17 +9,22 @@ const STORAGE_KEY = 'crm-background-settings';
 
 export const useBackgroundImage = () => {
   const [settings, setSettings] = useState<BackgroundSettings>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : { imageUrl: null, opacity: 0.85 };
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : { opacity: 0.85 };
+      // Note: imageUrl won't persist between sessions to avoid localStorage quota issues
+      return { imageUrl: null, opacity: parsed.opacity || 0.85 };
+    } catch (error) {
+      return { imageUrl: null, opacity: 0.85 };
+    }
   });
 
   useEffect(() => {
+    // Only persist opacity to avoid localStorage quota issues with large image data
     try {
-      // Only persist opacity, not the full image data to avoid quota issues
-      const settingsToStore = { imageUrl: null, opacity: settings.opacity };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToStore));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ opacity: settings.opacity }));
     } catch (error) {
-      console.warn('Failed to save background settings:', error);
+      console.warn('Failed to save opacity setting:', error);
     }
   }, [settings.opacity]);
 
