@@ -7,43 +7,44 @@
     <style>
         @page {
             size: A4;
-            margin: 2cm;
+            margin: 1.5cm;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.4;
             color: #333;
             max-width: 210mm;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
             background: white;
+            font-size: 10pt;
         }
         h1 {
             color: #2563eb;
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-            font-size: 24px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 6px;
+            margin-bottom: 15px;
+            font-size: 18pt;
         }
         h2 {
             color: #1e40af;
-            margin-top: 25px;
-            margin-bottom: 12px;
-            font-size: 18px;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-size: 13pt;
         }
         p {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             text-align: justify;
         }
         ul {
-            margin-left: 20px;
-            margin-bottom: 12px;
+            margin-left: 15px;
+            margin-bottom: 8px;
         }
         li {
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
         @media print {
             body {
@@ -56,12 +57,12 @@
         .print-button {
             background: #2563eb;
             color: white;
-            padding: 12px 24px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 20px;
+            font-size: 13px;
+            margin-bottom: 12px;
         }
         .print-button:hover {
             background: #1e40af;
@@ -76,177 +77,62 @@
     <div class="section">
         <h2>1. Challenge We Have Tackled</h2>
         <p>
-            The reality of modern B2B sales is brutal. Sales reps typically close only 2-3 deals per month, yet they're drowning 
-            in administrative work that eats up most of their day. After talking to several sales managers, we kept hearing the same 
-            frustrations: their teams were spending hours researching prospects on LinkedIn, crafting personalized emails that might 
-            never get read, manually logging every interaction into their CRM, and somehow still missing follow-ups because their 
-            calendar was a mess.
+            B2B sales reps close only 2-3 deals monthly while drowning in administrative work. Sales managers consistently report 
+            teams spending hours on LinkedIn research, email crafting, CRM data entry, and missed follow-ups. We built an AI system 
+            where specialized agents handle grunt work while humans control relationship building. The core idea: talk to your CRM 
+            naturally—"Hey Sarah, add John from Acme Corp as a lead" while driving between meetings.
         </p>
         <p>
-            We decided to tackle this head-on by building a system where AI agents do the grunt work while keeping humans in control 
-            of the actual relationship building. The core idea was simple: let salespeople talk to their CRM like they'd talk to an 
-            assistant. Say "Hey Sarah, add John from Acme Corp as a lead" while you're driving between meetings, and the system 
-            should just handle it.
-        </p>
-        <p>
-            But it's not just voice commands. We built five specialized agents that run continuously in the background. One agent 
-            monitors your email inbox and flags high-intent replies (like "Can we schedule a call?"). Another researches every new 
-            lead you add, pulling company data and recent news so you're never walking into a meeting cold. There's an agent that 
-            watches your pipeline and automatically schedules follow-ups based on where deals are stuck. We even built a meeting 
-            co-pilot that listens to your sales calls in real-time and can whisper suggestions or pull up relevant information 
-            when you need it.
-        </p>
-        <p>
-            The tricky part was the approval workflow. We knew salespeople wouldn't trust a system that sends emails on its own, 
-            so everything the AI drafts gets queued for approval. You review it, maybe tweak a line or two, then hit send. This 
-            way you're moving 10x faster than writing from scratch, but you're still in control of your voice and relationship 
-            with the client.
+            Five specialized agents run continuously: one monitors email for high-intent replies ("Can we schedule a call?"), another 
+            researches new leads with company data and recent news, one schedules follow-ups based on pipeline status, and a meeting 
+            co-pilot provides real-time suggestions during sales calls. Everything AI-drafted gets queued for approval—review, tweak, 
+            send. This provides 10x speed while maintaining control over client relationships.
         </p>
     </div>
     
     <div class="section">
         <h2>2. Tools / ML Models We Have Used</h2>
         <p>
-            We went all-in on Google's Gemini models, specifically because they handle both text and voice seamlessly. For the 
-            real-time meeting assistant, we're using <strong>Gemini 2.0 Flash</strong>. The latency on this model is impressively 
-            low—under 200ms response times, which is crucial when you're in the middle of a sales pitch and need the AI to respond 
-            naturally. It can process audio input directly without transcription delays, which was a game-changer for our voice 
-            features.
+            <strong>Gemini 2.0 Flash</strong> powers real-time meeting assistance with sub-200ms latency and direct audio processing—critical for natural sales conversation flow. <strong>Gemini 1.5 Pro</strong> handles complex reasoning tasks with its 1M token context window, analyzing entire company websites, email threads, and meeting notes simultaneously to draft personalized emails that resonate.
         </p>
         <p>
-            When we need deeper reasoning—like analyzing a lead's company and drafting a thoughtful outreach email—we switch to 
-            <strong>Gemini 1.5 Pro</strong>. This model has a massive context window (we're talking 1 million tokens), so we can 
-            feed it entire company websites, previous email threads, and meeting notes all at once. It picks up on subtle details 
-            that make the difference between a generic email and one that actually resonates.
-        </p>
-        <p>
-            On the infrastructure side, we built everything on <strong>Supabase</strong>, which honestly made our lives so much 
-            easier. Their <strong>Edge Functions</strong> run on Deno, deploy instantly, and scale automatically. We don't think 
-            about servers at all. The database is <strong>PostgreSQL</strong> with <strong>Row Level Security</strong> baked in, 
-            so each sales team only sees their own data—no risk of data leaking between organizations.
-        </p>
-        <p>
-            The frontend is <strong>React</strong> with <strong>TypeScript</strong> because we needed type safety when dealing with 
-            complex state management across multiple agent workflows. <strong>Tailwind CSS</strong> keeps our UI consistent without 
-            writing tons of custom CSS. For voice activation, we built a custom wake word detector using the browser's 
-            <strong>Web Speech API</strong>—surprisingly accurate once we tuned the confidence thresholds.
-        </p>
-        <p>
-            We integrated <strong>Firecrawl</strong> for intelligently scraping company websites (it handles JavaScript-heavy sites 
-            that basic scrapers choke on), <strong>Tavily</strong> for searching recent company news and financial data, and the 
-            <strong>Google Calendar API</strong> so the system can actually book meetings without you switching tabs.
+            Infrastructure runs on <strong>Supabase</strong>: <strong>Edge Functions</strong> (Deno) deploy instantly and scale automatically, <strong>PostgreSQL</strong> with <strong>Row Level Security</strong> ensures data isolation per organization. Frontend uses <strong>React</strong> + <strong>TypeScript</strong> for type-safe state management and <strong>Tailwind CSS</strong> for consistent UI. Custom wake word detection uses <strong>Web Speech API</strong>. External integrations: <strong>Firecrawl</strong> for JavaScript-heavy website scraping, <strong>Tavily</strong> for company research, <strong>Google Calendar API</strong> for meeting booking.
         </p>
     </div>
     
     <div class="section">
         <h2>3. What Has Worked Well With These Tools?</h2>
         <p>
-            Gemini's voice capabilities have honestly exceeded our expectations. We were worried about latency killing the natural 
-            conversation flow, but Flash 2.0 responds fast enough that it feels like talking to a person. During our beta testing, 
-            sales reps forgot they were talking to an AI mid-conversation. The model also does an excellent job maintaining context—if 
-            you mention "that prospect from yesterday," it knows who you mean without you repeating the name.
+            Gemini Flash 2.0's voice latency feels like talking to a person—beta testers forgot they were conversing with AI. Context retention is excellent; it remembers "that prospect from yesterday" without re-prompting. Pro's email quality impressed users: "I used to spend 30 minutes on cold emails. Now AI does 80%, I add personal touch." It handles 50+ page PDFs plus email history while extracting relevant personalization details.
         </p>
         <p>
-            The big win with Gemini 1.5 Pro has been email quality. We feed it everything we know about a lead, and it generates 
-            emails that actually sound personal. One beta user told us, "I used to spend 30 minutes researching and writing a 
-            cold email. Now the AI does 80% of it, and I just add my personal touch." The context window is genuinely massive—we've 
-            thrown 50+ page PDFs at it along with email history, and it still pulls out relevant details for personalization.
-        </p>
-        <p>
-            Supabase has been rock solid. We're not DevOps experts, and we don't want to be. Edge Functions just work—write code, 
-            push it, and it's live globally in seconds. We've had zero downtime since launch. The PostgreSQL database with RLS 
-            policies means we never worry about data isolation bugs. Each customer's data is inherently sandboxed at the database 
-            level.
-        </p>
-        <p>
-            The Web Speech API was a pleasant surprise. We thought we'd need a heavyweight solution like Whisper, but the browser's 
-            built-in recognition handles our wake word ("Hey Sarah") really well across different accents and noisy environments. 
-            We just had to tune confidence thresholds to avoid false triggers.
-        </p>
-        <p>
-            TypeScript has saved us countless times. With so many moving pieces—multiple agents, complex state management, async 
-            workflows—the type system catches bugs at compile time that would've been nightmares to debug in production. We've 
-            shipped features confidently knowing the type checker had our back.
+            Supabase delivered zero downtime since launch. Edge Functions deploy globally in seconds without DevOps expertise. RLS policies eliminate data isolation concerns—customer data is database-level sandboxed. Web Speech API surprised us with accurate wake word detection across accents and noisy environments after confidence tuning. TypeScript caught compile-time bugs that would've been production nightmares, enabling confident feature shipping.
         </p>
     </div>
     
     <div class="section">
         <h2>4. What Was Challenging?</h2>
         <p>
-            Voice recognition nearly drove us crazy in the early days. The wake word would trigger randomly when people said things 
-            like "Hey, Sara, did you..." (different name, but similar sound). Or worse, it would cut off mid-sentence because the 
-            speech recognition API thought you were done talking when you were just pausing to think. We ended up implementing a 
-            sliding confidence threshold that adapts based on background noise levels, plus a 2-second silence buffer before assuming 
-            you're done speaking. Not perfect, but way better.
+            Voice recognition false triggers ("Hey, Sara" vs. "Hey Sarah") and premature cutoffs plagued early versions. Solution: sliding confidence thresholds adapting to background noise plus 2-second silence buffers. Natural language parsing required handling variations like "Add John Smith who works at Acme" vs. "New lead, John from Acme." Multi-pattern matchers with fallbacks and explicit database verification now confirm saves before success messages.
         </p>
         <p>
-            Parsing natural language into structured data was harder than expected. Someone might say "Add John Smith who works at 
-            Acme Corporation" or "New lead, John from Acme" or "John Smith, company is Acme Corp." We needed to handle all these 
-            variations. Our initial regex patterns were too rigid and kept missing the company name or putting extra words in the 
-            email field. After way too much debugging, we built a multi-pattern matcher with fallbacks and explicit database 
-            verification after every insertion. Now the system confirms the lead was actually saved before telling the user it worked.
+            Critical bug: system claimed "Lead created!" before database writes completed, destroying user trust when later queries found nothing. Fixed with immediate read-back verification after every write—slight latency increase worth the reliability gain. Agent orchestration required locking mechanisms to prevent duplicate email drafts when multiple agents triggered simultaneously. Deduplication layer handles repeated external triggers (email webhooks).
         </p>
         <p>
-            The worst bug we had was the system claiming success too early. It would tell the user "Lead created!" but then the 
-            database write would fail silently, so when they asked to email that lead later, the system had no record of it. This 
-            destroyed trust instantly. We fixed it by adding explicit verification queries—after every write, we immediately read 
-            back the data to confirm it's actually there. Adds a tiny bit of latency, but the reliability improvement was worth it.
-        </p>
-        <p>
-            Getting multiple AI agents to work together without stepping on each other was tricky. Early versions would sometimes 
-            draft the same email twice because two agents triggered simultaneously. We implemented a locking mechanism in the 
-            orchestrator that tracks which agent is handling which lead and prevents duplicates. We also had to build a proper 
-            deduplication layer because external triggers (like email webhooks) can fire multiple times.
-        </p>
-        <p>
-            Keeping conversation context across multiple function calls was not straightforward. Edge Functions are stateless by 
-            design, so we had to explicitly store conversation history in the database and reload it on every request. This added 
-            complexity but was necessary for the AI to remember what you discussed five messages ago.
-        </p>
-        <p>
-            Balancing AI autonomy with user control took several iterations. Too much automation and users felt out of control. Too 
-            many approval prompts and the system became annoying. We settled on automatic research and drafting, but human approval 
-            for anything that goes out to a customer. The UI queues up drafts in a review tab, so users can batch-approve during 
-            downtime rather than being interrupted constantly.
+            Stateless Edge Functions required explicit conversation history storage and reload per request for context maintenance. Balancing autonomy vs. control took iterations—settled on automatic research/drafting with human approval for customer-facing communications. Review tab queues drafts for batch approval during downtime, avoiding constant interruptions.
         </p>
     </div>
     
     <div class="section">
         <h2>5. How Have We Spent Our Time?</h2>
         <p>
-            Looking back at our commit history and time logs, the voice system ate up way more time than expected—probably 30% of 
-            total development. Getting wake word detection reliable meant recording ourselves saying hundreds of variations in 
-            different rooms with different background noise. Then we had to tune confidence thresholds, implement silence detection, 
-            and handle edge cases like someone coughing mid-command. Integrating Gemini Live was actually the easier part; the hard 
-            part was all the surrounding UX to make voice feel natural.
+            <strong>Voice system (30%):</strong> Recording hundreds of wake word variations across environments, tuning confidence thresholds, implementing silence detection, handling edge cases (coughing mid-command). Gemini Live integration was straightforward; surrounding UX for natural voice interaction was complex.
         </p>
         <p>
-            Building and tuning the AI agents took another 25% of our time. Each agent needed its own specialized prompt, and we 
-            spent weeks iterating on prompt engineering. The email drafting agent went through maybe 50 different prompt variations 
-            before it consistently generated emails that didn't sound robotic. The orchestrator that coordinates all the agents was 
-            its own beast—figuring out which agent should trigger when, preventing duplicates, handling failures gracefully.
+            <strong>AI agents (25%):</strong> 50+ prompt iterations for email drafting agent to eliminate robotic tone. Orchestrator development—determining trigger conditions, preventing duplicates, graceful failure handling. <strong>Database (15%):</strong> Learning PostgreSQL RLS, schema design for leads/emails/meetings/actions balancing flexibility with referential integrity, index optimization for heavy queries.
         </p>
         <p>
-            About 15% of our time went to database design and security. We're not database experts, so learning PostgreSQL's Row 
-            Level Security took time. We had to really think through the schema—how do we model leads, emails, meetings, and agent 
-            actions in a way that's flexible but still maintains referential integrity? We also spent time on indexes and query 
-            optimization because some of our AI agents query the database heavily.
-        </p>
-        <p>
-            Frontend work was maybe 15% of the project. We're using React, which we know well, but designing a dashboard that 
-            surfaces AI insights without overwhelming users took iteration. Early versions had too much information, and beta testers 
-            said they didn't know where to look. We simplified down to tiles showing the most important stuff—today's tasks, 
-            high-priority leads, emails waiting for approval.
-        </p>
-        <p>
-            External API integrations (Google Calendar, Firecrawl, Tavily) consumed about 10% of time. OAuth flows are always 
-            fiddly, and we had to handle token refresh, scope permissions, and error cases where APIs are down or rate-limited.
-        </p>
-        <p>
-            The last 5% was testing, bug fixes, and optimization. We found and fixed that nasty "success before persistence" bug. 
-            We optimized API calls by batching requests and caching company research so we don't re-fetch the same data. We also 
-            did a cost audit after our beta ran up a bigger Gemini bill than expected—turns out we were sending way too much 
-            context on every request. Trimming that down saved us a ton without hurting quality.
+            <strong>Frontend (15%):</strong> Iterating dashboard design—early versions overwhelmed users with data, simplified to essential tiles (today's tasks, high-priority leads, approval queue). <strong>API integrations (10%):</strong> OAuth flows, token refresh, scope permissions, error handling for Google Calendar/Firecrawl/Tavily. <strong>Testing/optimization (5%):</strong> Fixed persistence bug, batched API calls, cached research data, trimmed excessive context in Gemini requests after cost audit.
         </p>
     </div>
 </body>
