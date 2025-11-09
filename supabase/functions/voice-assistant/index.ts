@@ -717,8 +717,10 @@ serve(async (req) => {
 
     // 🔍 CALL VERIFIER AGENT to check all claimed actions
     let verificationReport = null;
-    if (actionsTaken.length > 0) {
-      console.log("🔍 Calling verifier agent to check", actionsTaken.length, "actions");
+    if (((actionsTaken?.length ?? 0) > 0) || ((actionResults?.length ?? 0) > 0)) {
+      console.log("🔍 Calling verifier agent to check",
+        (actionsTaken?.length ?? 0), "actions and",
+        (actionResults?.length ?? 0), "action results");
       try {
         const { data: verifierResult, error: verifierError } = await supabase.functions.invoke("agent-verifier", {
           body: {

@@ -23,8 +23,28 @@ serve(async (req) => {
     const verificationReport: any[] = [];
     const fixedActions: any[] = [];
 
+    // Build actions list from actionsTaken; if empty, parse actionResults claims
+    const actionsToVerify: any[] = Array.isArray(actionsTaken) ? [...actionsTaken] : [];
+
+    if (actionsToVerify.length === 0 && Array.isArray(actionResults) && actionResults.length > 0) {
+      for (const res of actionResults) {
+        if (typeof res !== 'string') continue;
+        // Patterns like:
+        // "✓ Lead created: John Doe from ACME (555-0000)"
+        // "Added new lead John Doe (ACME)"
+        let match = res.match(/Lead created:\s*([A-Za-z\s]+)\s+from\s+([A-Za-z\s&]+)/i);
+        if (!match) match = res.match(/Added new lead\s+"?([A-Za-z\s]+)"?\s*(?:\(|from\s+)([A-Za-z\s&]+)/i);
+        if (match) {
+          const name = match[1].trim();
+          const company = match[2].replace(/[()]/g, '').trim();
+          actionsToVerify.push({ action: 'add_lead', name, company, email: null, phone: null });
+          console.log("🧠 VERIFIER: Parsed claim from actionResults => add_lead:", { name, company });
+        }
+      }
+    }
+
     // Verify each action claim
-    for (const action of actionsTaken || []) {
+    for (const action of actionsToVerify || []) {
       console.log("🔍 Verifying action:", action.action);
 
       switch (action.action) {
