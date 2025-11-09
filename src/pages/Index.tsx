@@ -25,7 +25,7 @@ const Index = () => {
 
   return (
     <div 
-      className="h-screen overflow-hidden relative"
+      className="min-h-screen pb-6 relative"
       style={{
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
         backgroundSize: 'cover',
@@ -44,41 +44,41 @@ const Index = () => {
         onScheduleClick={() => setMeetingOpen(true)}
       />
       
-      <main className="px-3 max-w-[1800px] mx-auto h-[calc(100vh-90px)] overflow-hidden">
+      <main className="px-4 max-w-[1800px] mx-auto">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 h-full"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-[calc(100vh-140px)]"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}
         >
           <div 
-            className="lg:col-span-2 lg:row-span-2 h-full overflow-hidden" 
+            className="lg:col-span-2 lg:row-span-2" 
             data-tile-id="dashboard"
           >
             <DashboardTile />
           </div>
           
-          <div className="lg:row-span-2 h-full overflow-hidden" data-tile-id="contacts">
+          <div className="lg:row-span-2" data-tile-id="contacts">
             <ContactsTile />
           </div>
           
-          <div className="h-full overflow-hidden" data-tile-id="deals">
+          <div data-tile-id="deals">
             <DealsTile />
           </div>
           
-          <div className="h-full overflow-hidden" data-tile-id="followups">
+          <div data-tile-id="followups">
             <FollowUpsTile />
           </div>
           
-          <div className="h-full overflow-hidden" data-tile-id="tasks">
+          <div data-tile-id="tasks">
             <TodaysTasksTile />
           </div>
           
-          <div className="h-full overflow-hidden" data-tile-id="calendar">
+          <div data-tile-id="calendar">
             <CalendarTile />
           </div>
 
-          <div className="lg:col-span-2 h-full overflow-hidden" data-tile-id="email-review">
+          <div className="lg:col-span-2" data-tile-id="email-review">
             <EmailReviewTile />
           </div>
         </div>

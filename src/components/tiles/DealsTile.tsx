@@ -113,11 +113,11 @@ const DealsTile = () => {
   const DealCard = ({ deal, isNew }: { deal: Deal; isNew: boolean }) => (
     <Card 
       className={cn(
-        "p-3 bg-white/60 border-white/40 hover:bg-white/80 transition-all",
+        "p-4 bg-white/60 border-white/40 hover:bg-white/80 transition-all",
         isNew && "animate-pulse ring-2 ring-primary/50"
       )}
     >
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <h4 className="font-semibold text-sm mb-1">{deal.name}</h4>
           <p className="text-xs text-muted-foreground">
@@ -130,7 +130,7 @@ const DealsTile = () => {
       </div>
       
       {/* Probability Bar */}
-      <div className="mb-2">
+      <div className="mb-3">
         <div className="flex justify-between text-xs mb-1">
           <span className="text-muted-foreground">Win Probability</span>
           <span className="font-semibold">{Math.round((deal.probability || 0) * 100)}%</span>
@@ -160,7 +160,7 @@ const DealsTile = () => {
   );
 
   const renderCards = () => (
-    <div className="space-y-2 overflow-auto custom-scrollbar flex-1">
+    <div className="space-y-3 overflow-auto custom-scrollbar flex-1">
       {deals.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">No active deals</p>
       ) : deals.map((deal) => (
@@ -170,7 +170,7 @@ const DealsTile = () => {
   );
 
   const renderKanban = () => (
-    <div className="flex gap-2 overflow-x-auto custom-scrollbar flex-1 pb-2">
+    <div className="flex gap-3 overflow-x-auto custom-scrollbar flex-1 pb-2">
       {stages.filter(stage => deals.some(d => d.stage === stage.id)).map(stage => {
         const stageDeals = deals.filter(d => d.stage === stage.id);
         return (
@@ -193,8 +193,8 @@ const DealsTile = () => {
   );
 
   return (
-    <div className="glass-tile gradient-deals p-3 hover-scale h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between mb-2">
+    <div className="glass-tile gradient-deals p-4 hover-scale h-full flex flex-col">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Deals Pipeline</h2>
           {totalCount > 0 && (
