@@ -61,7 +61,7 @@ const DashboardTile = () => {
   ];
 
   return (
-    <div className="glass-tile gradient-dashboard p-4 hover-scale h-full flex flex-col">
+    <div className="glass-tile gradient-dashboard p-4 hover-scale h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">Dashboard</h2>
         <div className="flex items-center gap-2">

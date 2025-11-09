@@ -193,7 +193,7 @@ const DealsTile = () => {
   );
 
   return (
-    <div className="glass-tile gradient-deals p-4 hover-scale h-full flex flex-col">
+    <div className="glass-tile gradient-deals p-4 hover-scale h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Deals Pipeline</h2>

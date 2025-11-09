@@ -52,33 +52,33 @@ const Index = () => {
           } as React.CSSProperties}
         >
           <div 
-            className="lg:col-span-2 lg:row-span-2" 
+            className="lg:col-span-2 lg:row-span-2 h-full overflow-hidden" 
             data-tile-id="dashboard"
           >
             <DashboardTile />
           </div>
           
-          <div className="lg:row-span-2" data-tile-id="contacts">
+          <div className="lg:row-span-2 h-full overflow-hidden" data-tile-id="contacts">
             <ContactsTile />
           </div>
           
-          <div data-tile-id="deals">
+          <div className="h-full overflow-hidden" data-tile-id="deals">
             <DealsTile />
           </div>
           
-          <div data-tile-id="followups">
+          <div className="h-full overflow-hidden" data-tile-id="followups">
             <FollowUpsTile />
           </div>
           
-          <div data-tile-id="tasks">
+          <div className="h-full overflow-hidden" data-tile-id="tasks">
             <TodaysTasksTile />
           </div>
           
-          <div data-tile-id="calendar">
+          <div className="h-full overflow-hidden" data-tile-id="calendar">
             <CalendarTile />
           </div>
 
-          <div className="lg:col-span-2" data-tile-id="email-review">
+          <div className="lg:col-span-2 h-full overflow-hidden" data-tile-id="email-review">
             <EmailReviewTile />
           </div>
         </div>

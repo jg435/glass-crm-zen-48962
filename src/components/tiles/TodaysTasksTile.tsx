@@ -61,7 +61,7 @@ const TodaysTasksTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-ai p-4 hover-scale h-full flex flex-col">
+    <div className="glass-tile gradient-ai p-4 hover-scale h-full flex flex-col overflow-hidden">
       <h2 className="text-lg font-semibold mb-3">Today's Tasks</h2>
       
       <div className="space-y-2 overflow-auto custom-scrollbar flex-1">

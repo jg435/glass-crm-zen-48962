@@ -123,7 +123,7 @@ const CalendarTile = () => {
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
   return (
-    <div className="glass-tile gradient-calendar p-4 hover-scale h-full flex flex-col">
+    <div className="glass-tile gradient-calendar p-4 hover-scale h-full flex flex-col overflow-hidden">
       <h2 className="text-lg font-semibold mb-3">Calendar</h2>
       
       <Card className="p-3 bg-white/60 border-white/40 flex-1 flex flex-col">
