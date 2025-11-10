@@ -50,3 +50,12 @@ verify_jwt = false
 
 [functions.voice-assistant]
 verify_jwt = false
+
+[functions.ingest-email-leads]
+verify_jwt = false
+
+[functions.ingest-whatsapp-leads]
+verify_jwt = false
+
+[functions.ingest-linkedin-leads]
+verify_jwt = false

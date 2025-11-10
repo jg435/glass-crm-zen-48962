@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
-import { Upload, X, Image } from "lucide-react";
+import { Upload, X, Image, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
@@ -23,6 +23,31 @@ const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { backgroundImage, opacity, setBackgroundImage, removeBackground, setOpacity } = useBackgroundImage();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+
+  const webhookUrls = {
+    email: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ingest-email-leads`,
+    whatsapp: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ingest-whatsapp-leads`,
+    linkedin: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ingest-linkedin-leads`,
+  };
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedUrl(label);
+      toast({
+        title: "Copied!",
+        description: `${label} webhook URL copied to clipboard`,
+      });
+      setTimeout(() => setCopiedUrl(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the URL manually",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -173,6 +198,115 @@ const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                   </Button>
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Lead Ingestion Channels</Label>
+            <div className="p-4 bg-muted/50 rounded-xl space-y-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Configure webhooks to automatically capture leads from multiple channels
+              </p>
+              
+              {/* Email Webhook */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">Email Ingestion</Label>
+                  <span className="text-xs text-muted-foreground">via Resend</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input 
+                    value={webhookUrls.email} 
+                    readOnly 
+                    className="font-mono text-xs rounded-xl"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(webhookUrls.email, 'Email')}
+                    className="rounded-xl shrink-0"
+                  >
+                    {copiedUrl === 'Email' ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Forward emails to this webhook to create leads automatically
+                </p>
+              </div>
+
+              {/* WhatsApp Webhook */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">WhatsApp Business</Label>
+                  <span className="text-xs text-muted-foreground">via Meta</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input 
+                    value={webhookUrls.whatsapp} 
+                    readOnly 
+                    className="font-mono text-xs rounded-xl"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(webhookUrls.whatsapp, 'WhatsApp')}
+                    className="rounded-xl shrink-0"
+                  >
+                    {copiedUrl === 'WhatsApp' ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Configure in Meta Business Suite to capture WhatsApp leads
+                </p>
+              </div>
+
+              {/* LinkedIn Webhook */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">LinkedIn Import</Label>
+                  <span className="text-xs text-muted-foreground">Batch Import</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input 
+                    value={webhookUrls.linkedin} 
+                    readOnly 
+                    className="font-mono text-xs rounded-xl"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(webhookUrls.linkedin, 'LinkedIn')}
+                    className="rounded-xl shrink-0"
+                  >
+                    {copiedUrl === 'LinkedIn' ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  POST LinkedIn profiles as JSON to import leads
+                </p>
+              </div>
+
+              <Button variant="secondary" className="rounded-xl w-full mt-2" asChild>
+                <a 
+                  href="https://github.com/yourusername/yourrepo/blob/main/LEAD_INGESTION_SETUP.md" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  View Setup Documentation
+                </a>
+              </Button>
             </div>
           </div>
 
