@@ -58,15 +58,15 @@ const Index = () => {
             <FollowUpsTile />
           </div>
           
-          <div data-tile-id="tasks">
+          <div className="lg:row-span-1" data-tile-id="tasks">
             <TodaysTasksTile />
           </div>
           
-          <div data-tile-id="calendar">
+          <div className="lg:row-span-1" data-tile-id="calendar">
             <CalendarTile />
           </div>
 
-          <div className="lg:col-span-2" data-tile-id="email-review">
+          <div className="lg:col-span-2 lg:row-span-1" data-tile-id="email-review">
             <EmailReviewTile />
           </div>
         </div>
