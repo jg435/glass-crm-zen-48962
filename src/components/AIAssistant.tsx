@@ -620,7 +620,7 @@ const AIAssistant = ({
 
       {/* Fullscreen Overlay */}
       {isActive && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <div className="max-w-4xl w-full space-y-6 max-h-screen overflow-y-auto">
               {/* Conversation History */}
