@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { CheckCircle2, Circle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, Circle, Calendar, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Task {
@@ -8,6 +9,7 @@ interface Task {
   title: string;
   scheduled_at: string;
   status: string;
+  type?: 'meeting' | 'task';
 }
 
 const TodaysTasksTile = () => {
@@ -41,7 +43,13 @@ const TodaysTasksTile = () => {
       .lt('scheduled_at', tomorrow.toISOString())
       .order('scheduled_at', { ascending: true });
 
-    setTasks(data || []);
+    // Mark all as meetings (since they come from meetings table)
+    const tasksWithType = (data || []).map(task => ({
+      ...task,
+      type: 'meeting' as const
+    }));
+
+    setTasks(tasksWithType);
   };
 
   const toggleTask = async (id: string, currentStatus: string) => {
@@ -62,11 +70,11 @@ const TodaysTasksTile = () => {
 
   return (
     <div className="glass-tile gradient-ai p-4 hover-scale h-full flex flex-col">
-      <h2 className="text-lg font-semibold mb-3">Today's Tasks</h2>
+      <h2 className="text-lg font-semibold mb-3">Today's Tasks & Meetings</h2>
       
       <div className="space-y-2 overflow-auto custom-scrollbar flex-1">
         {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No tasks for today</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No tasks or meetings for today</p>
         ) : tasks.map((task) => (
           <Card
             key={task.id}
@@ -80,6 +88,16 @@ const TodaysTasksTile = () => {
                 <Circle className="h-5 w-5 text-muted-foreground shrink-0" />
               )}
               <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  {task.type === 'meeting' ? (
+                    <Calendar className="h-3.5 w-3.5 text-primary" />
+                  ) : (
+                    <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <Badge variant="outline" className="text-xs h-5">
+                    {task.type === 'meeting' ? 'Meeting' : 'Task'}
+                  </Badge>
+                </div>
                 <p className={`text-sm ${task.status === 'completed' ? "line-through text-muted-foreground" : ""}`}>
                   {task.title}
                 </p>
