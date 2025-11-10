@@ -34,7 +34,7 @@ const Index = () => {
       
       <main className="px-4 max-w-[1800px] mx-auto">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[minmax(280px,1fr)] max-h-[calc(100vh-120px)]"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[280px] max-h-[calc(100vh-120px)]"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}
@@ -58,15 +58,15 @@ const Index = () => {
             <FollowUpsTile />
           </div>
           
-          <div className="lg:row-span-1" data-tile-id="tasks">
+          <div className="lg:row-span-1 h-full" data-tile-id="tasks">
             <TodaysTasksTile />
           </div>
           
-          <div className="lg:row-span-1" data-tile-id="calendar">
+          <div className="lg:row-span-1 h-full" data-tile-id="calendar">
             <CalendarTile />
           </div>
 
-          <div className="lg:col-span-2 lg:row-span-1" data-tile-id="email-review">
+          <div className="lg:col-span-2 lg:row-span-1 h-full" data-tile-id="email-review">
             <EmailReviewTile />
           </div>
         </div>
