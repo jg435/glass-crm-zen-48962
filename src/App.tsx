@@ -9,6 +9,9 @@ import LeadDetails from "./pages/LeadDetails";
 import MeetingSimulation from "./pages/MeetingSimulation";
 import LiveMeetingDemo from "./pages/LiveMeetingDemo";
 import GoogleAuthCallback from "./pages/GoogleAuthCallback";
+import ExpandedDashboard from "./pages/ExpandedDashboard";
+import ExpandedContacts from "./pages/ExpandedContacts";
+import ExpandedDeals from "./pages/ExpandedDeals";
 import NotFound from "./pages/NotFound";
 
 const BackgroundLayer = () => {
@@ -49,6 +52,9 @@ const App = () => (
               <Route path="/simulate" element={<MeetingSimulation />} />
               <Route path="/live-meeting" element={<LiveMeetingDemo />} />
               <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+              <Route path="/dashboard" element={<ExpandedDashboard />} />
+              <Route path="/contacts" element={<ExpandedContacts />} />
+              <Route path="/deals" element={<ExpandedDeals />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutGrid, LayoutList } from "lucide-react";
+import { LayoutGrid, LayoutList, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Deal {
@@ -32,6 +33,7 @@ const stages = [
 ];
 
 const DealsTile = () => {
+  const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
@@ -219,6 +221,14 @@ const DealsTile = () => {
             onClick={() => setViewMode('kanban')}
           >
             <LayoutGrid className={cn("h-4 w-4", viewMode === 'kanban' && "text-primary")} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => navigate('/deals')}
+          >
+            <Maximize2 className="h-4 w-4" />
           </Button>
         </div>
       </div>

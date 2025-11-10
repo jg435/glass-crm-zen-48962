@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, Users, Calendar, DollarSign, Zap, Settings } from "lucide-react";
+import { TrendingUp, Users, Calendar, DollarSign, Zap, Settings, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LeadSearchCustomizer } from "@/components/LeadSearchCustomizer";
 
 const DashboardTile = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalLeads: 0,
     activeDeals: 0,
@@ -14,11 +16,26 @@ const DashboardTile = () => {
     emailsSent: 0
   });
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [showCustomizer, setShowCustomizer] = useState(false);
 
   useEffect(() => {
     fetchStats();
+    fetchLastUpdated();
   }, []);
+
+  const fetchLastUpdated = async () => {
+    const { data } = await supabase
+      .from('ui_state')
+      .select('preferences')
+      .eq('user_id', '00000000-0000-0000-0000-000000000000')
+      .single();
+
+    if (data?.preferences && typeof data.preferences === 'object' && 'last_lead_refresh' in data.preferences) {
+      setLastUpdated((data.preferences as { last_lead_refresh?: string }).last_lead_refresh || null);
+    }
+  };
 
   const fetchStats = async () => {
     const [leadsRes, dealsRes, followupsRes, emailsRes] = await Promise.all([
@@ -34,6 +51,23 @@ const DashboardTile = () => {
       upcomingFollowups: followupsRes.count || 0,
       emailsSent: emailsRes.count || 0
     });
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const { error } = await supabase.functions.invoke('refresh-leads');
+      if (error) throw error;
+      
+      await fetchStats();
+      await fetchLastUpdated();
+      toast.success('Leads refreshed!');
+    } catch (error: any) {
+      console.error('Refresh failed:', error);
+      toast.error(error.message || 'Failed to refresh');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleFindLeads = async () => {
@@ -53,6 +87,17 @@ const DashboardTile = () => {
     }
   };
 
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return 'Never';
+    const date = new Date(lastUpdated);
+    const now = new Date();
+    const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    return `${Math.floor(diffMinutes / 60)}h ago`;
+  };
+
   const kpis = [
     { label: "Total Leads / Contacts", value: stats.totalLeads.toString(), icon: Users, color: "text-primary" },
     { label: "Active Deals", value: stats.activeDeals.toString(), icon: TrendingUp, color: "text-success" },
@@ -61,10 +106,25 @@ const DashboardTile = () => {
   ];
 
   return (
-    <div className="glass-tile gradient-dashboard p-4 hover-scale h-full flex flex-col">
+    <div 
+      className="glass-tile gradient-dashboard p-4 hover-scale h-full flex flex-col cursor-pointer"
+      onClick={() => navigate('/dashboard')}
+    >
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold">Dashboard</h2>
-        <div className="flex items-center gap-2">
+        <div>
+          <h2 className="text-lg font-semibold">Dashboard</h2>
+          <p className="text-xs text-muted-foreground">Updated: {formatLastUpdated()}</p>
+        </div>
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <Button 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
           <Button 
             onClick={handleFindLeads} 
             disabled={loading}
