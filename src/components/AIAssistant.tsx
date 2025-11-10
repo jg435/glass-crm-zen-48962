@@ -47,6 +47,10 @@ interface AIAssistantProps {
   onOpenEmails?: () => void;
   onOpenMeeting?: () => void;
   onNavigateToLead?: (leadId: string) => void;
+  onNavigateToHome?: () => void;
+  onNavigateToDashboard?: () => void;
+  onNavigateToContacts?: () => void;
+  onNavigateToDeals?: () => void;
 }
 
 interface PendingSubmission {
@@ -59,7 +63,11 @@ const AIAssistant = ({
   onOpenLeadGen, 
   onOpenEmails, 
   onOpenMeeting,
-  onNavigateToLead 
+  onNavigateToLead,
+  onNavigateToHome,
+  onNavigateToDashboard,
+  onNavigateToContacts,
+  onNavigateToDeals
 }: AIAssistantProps) => {
   const [isActive, setIsActive] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -294,6 +302,27 @@ const AIAssistant = ({
                 onNavigateToLead?.(action.leadId);
               }
               break;
+            case 'navigate_home':
+              onNavigateToHome?.();
+              break;
+            case 'expand_dashboard':
+              onNavigateToDashboard?.();
+              break;
+            case 'expand_contacts':
+              onNavigateToContacts?.();
+              break;
+            case 'expand_deals':
+              onNavigateToDeals?.();
+              break;
+            case 'expand_emails':
+              onOpenEmails?.();
+              break;
+            case 'refresh_leads':
+              await handleRefreshLeads();
+              break;
+            case 'scroll':
+              handleScroll(action.direction, action.amount);
+              break;
             case 'fill_form':
               await handleFormFill(action as FormFillAction & { leadId?: string });
               break;
@@ -469,6 +498,58 @@ const AIAssistant = ({
         description: "Failed to submit form",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleRefreshLeads = async () => {
+    try {
+      const refreshButton = document.querySelector('[data-action="refresh-leads"]') as HTMLElement;
+      if (refreshButton) {
+        refreshButton.click();
+        toast({
+          title: "Refreshing Leads",
+          description: "Lead data is being updated..."
+        });
+      } else {
+        // Fallback: Call the edge function directly
+        await supabase.functions.invoke('refresh-leads');
+        toast({
+          title: "Leads Refreshed",
+          description: "Lead scores have been updated"
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing leads:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh leads",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleScroll = (direction: string, amount?: number) => {
+    const scrollAmount = amount || 300;
+    
+    switch (direction) {
+      case 'down':
+        window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        break;
+      case 'up':
+        window.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+        break;
+      case 'left':
+        window.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        break;
+      case 'right':
+        window.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        break;
+      case 'top':
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        break;
+      case 'bottom':
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        break;
     }
   };
 

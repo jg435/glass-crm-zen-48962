@@ -78,6 +78,10 @@ const Index = () => {
         onOpenEmails={() => setEmailsOpen(true)}
         onOpenMeeting={() => setMeetingOpen(true)}
         onNavigateToLead={(leadId) => navigate(`/lead/${leadId}`)}
+        onNavigateToHome={() => navigate('/')}
+        onNavigateToDashboard={() => navigate('/dashboard')}
+        onNavigateToContacts={() => navigate('/contacts')}
+        onNavigateToDeals={() => navigate('/deals')}
       />
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
       <LeadGenerationModal open={leadGenOpen} onOpenChange={setLeadGenOpen} />

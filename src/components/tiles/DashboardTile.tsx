@@ -122,6 +122,7 @@ const DashboardTile = () => {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
+            data-action="refresh-leads"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           </Button>

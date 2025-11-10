@@ -105,6 +105,76 @@ serve(async (req) => {
     let uiActions: any[] = [];
 
     // 0. UI Navigation Commands & Form Auto-Fill
+    // Go back to home
+    if ((lowerMessage.includes("go back") || lowerMessage.includes("return")) && 
+        (lowerMessage.includes("home") || lowerMessage.includes("main") || lowerMessage.includes("dashboard"))) {
+      uiActions.push({ type: 'navigate_home' });
+      actionResults.push("Navigating to home");
+    }
+    
+    // Expand tiles
+    if ((lowerMessage.includes("expand") || lowerMessage.includes("open") || lowerMessage.includes("show full")) && 
+        (lowerMessage.includes("dashboard tile") || lowerMessage.includes("overview"))) {
+      uiActions.push({ type: 'expand_dashboard' });
+      actionResults.push("Expanding dashboard view");
+    }
+    
+    if ((lowerMessage.includes("expand") || lowerMessage.includes("open") || lowerMessage.includes("show full")) && 
+        (lowerMessage.includes("contacts") || lowerMessage.includes("leads tile"))) {
+      uiActions.push({ type: 'expand_contacts' });
+      actionResults.push("Expanding contacts view");
+    }
+    
+    if ((lowerMessage.includes("expand") || lowerMessage.includes("open") || lowerMessage.includes("show full")) && 
+        lowerMessage.includes("deals")) {
+      uiActions.push({ type: 'expand_deals' });
+      actionResults.push("Expanding deals view");
+    }
+    
+    if ((lowerMessage.includes("expand") || lowerMessage.includes("open") || lowerMessage.includes("show full")) && 
+        (lowerMessage.includes("email") || lowerMessage.includes("campaigns"))) {
+      uiActions.push({ type: 'expand_emails' });
+      actionResults.push("Expanding emails view");
+    }
+    
+    // Scroll commands
+    if (lowerMessage.includes("scroll down")) {
+      uiActions.push({ type: 'scroll', direction: 'down' });
+      actionResults.push("Scrolling down");
+    }
+    
+    if (lowerMessage.includes("scroll up")) {
+      uiActions.push({ type: 'scroll', direction: 'up' });
+      actionResults.push("Scrolling up");
+    }
+    
+    if (lowerMessage.includes("scroll left")) {
+      uiActions.push({ type: 'scroll', direction: 'left' });
+      actionResults.push("Scrolling left");
+    }
+    
+    if (lowerMessage.includes("scroll right")) {
+      uiActions.push({ type: 'scroll', direction: 'right' });
+      actionResults.push("Scrolling right");
+    }
+    
+    if (lowerMessage.includes("scroll to top") || lowerMessage.includes("go to top")) {
+      uiActions.push({ type: 'scroll', direction: 'top' });
+      actionResults.push("Scrolling to top");
+    }
+    
+    if (lowerMessage.includes("scroll to bottom") || lowerMessage.includes("go to bottom")) {
+      uiActions.push({ type: 'scroll', direction: 'bottom' });
+      actionResults.push("Scrolling to bottom");
+    }
+    
+    // Refresh leads
+    if ((lowerMessage.includes("refresh") || lowerMessage.includes("update")) && 
+        lowerMessage.includes("lead")) {
+      uiActions.push({ type: 'refresh_leads' });
+      actionResults.push("Refreshing leads data");
+    }
+    
     // Open Settings
     if (lowerMessage.includes("open settings") || lowerMessage.includes("show settings")) {
       uiActions.push({ type: 'open_settings' });
@@ -1251,8 +1321,13 @@ ${verificationReport.report.filter((r: any) => r.status === 'failed').length > 0
 IMPORTANT CAPABILITIES:
 - You can OPEN settings, lead generation, email campaigns, and meeting scheduler
 - You can NAVIGATE to specific lead details pages
+- You can GO BACK TO HOME/main dashboard
+- You can EXPAND TILES (dashboard, contacts, deals, emails, tasks) to full page views
+- You can SCROLL (down, up, left, right, to top, to bottom)
+- You can REFRESH LEADS to update their scores and data
 - You can ADD tasks/reminders when asked
 - You can MARK tasks complete when requested
+- You can EDIT tasks when requested
 - You can SET follow-ups with leads
 - You can DRAFT emails to leads
 - You can SEND/APPROVE emails when the user confirms (says "yes", "approve", "send the email")
