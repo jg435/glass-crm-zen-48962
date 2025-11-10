@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Search, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import AIAssistant from "@/components/AIAssistant";
 
 interface Contact {
   id: string;
@@ -215,14 +214,6 @@ const ExpandedContacts = () => {
           </div>
         )}
       </div>
-      
-      <AIAssistant 
-        onNavigateToHome={() => navigate('/')}
-        onNavigateToDashboard={() => navigate('/dashboard')}
-        onNavigateToContacts={() => navigate('/contacts')}
-        onNavigateToDeals={() => navigate('/deals')}
-        onNavigateToLead={(leadId) => navigate(`/lead/${leadId}`)}
-      />
     </div>
   );
 };

@@ -6,7 +6,6 @@ import { ArrowLeft, TrendingUp, Users, Calendar, DollarSign, Zap, Settings, Refr
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LeadSearchCustomizer } from "@/components/LeadSearchCustomizer";
-import AIAssistant from "@/components/AIAssistant";
 
 const ExpandedDashboard = () => {
   const navigate = useNavigate();
@@ -217,14 +216,6 @@ const ExpandedDashboard = () => {
       </div>
 
       <LeadSearchCustomizer open={showCustomizer} onOpenChange={setShowCustomizer} />
-      
-      <AIAssistant 
-        onNavigateToHome={() => navigate('/')}
-        onNavigateToDashboard={() => navigate('/dashboard')}
-        onNavigateToContacts={() => navigate('/contacts')}
-        onNavigateToDeals={() => navigate('/deals')}
-        onNavigateToLead={(leadId) => navigate(`/lead/${leadId}`)}
-      />
     </div>
   );
 };
