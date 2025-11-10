@@ -685,28 +685,31 @@ serve(async (req) => {
     // 4e. Draft emails - only trigger on draft/create/write email commands
     else if (
       (lowerMessage.includes("draft") || lowerMessage.includes("write") || lowerMessage.includes("create")) && 
-      lowerMessage.includes("email")
+      (lowerMessage.includes("email") || lowerMessage.includes("e-mail") || lowerMessage.includes("mail"))
     ) {
       // Extract lead name - improved patterns that capture ONLY the name
       let leadName = null;
       
-      // Pattern 1: "email to/for [Name]" followed by "about/with/regarding" or whitespace
-      const pattern1 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding|and)/i;
-      const match1 = message.match(pattern1);
+      // Normalize "e-mail" to "email" for pattern matching
+      const normalizedMessage = message.replace(/e-mail/gi, "email");
+      
+      // Pattern 1: "email to/for [Name]" followed by common delimiters
+      const pattern1 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding|on|and)/i;
+      const match1 = normalizedMessage.match(pattern1);
       
       if (match1 && match1[1]) {
         leadName = match1[1].trim();
       } else {
-        // Pattern 2: "to/for [Name]" followed by "about/with/regarding"
-        const pattern2 = /(?:^|\s)(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding)/i;
-        const match2 = message.match(pattern2);
+        // Pattern 2: "to/for [Name]" followed by common delimiters
+        const pattern2 = /(?:^|\s)(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s+(?:about|with|regarding|on)/i;
+        const match2 = normalizedMessage.match(pattern2);
         
         if (match2 && match2[1]) {
           leadName = match2[1].trim();
         } else {
-          // Pattern 3: "email to/for [Name]" at any position
-          const pattern3 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b/i;
-          const match3 = message.match(pattern3);
+          // Pattern 3: "email to/for [Name]" at end of phrase or before punctuation
+          const pattern3 = /email\s+(?:to|for)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)(?:\s|,|\.|\?|$)/i;
+          const match3 = normalizedMessage.match(pattern3);
           
           if (match3 && match3[1]) {
             leadName = match3[1].trim();
