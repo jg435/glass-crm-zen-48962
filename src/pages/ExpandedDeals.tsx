@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Search, LayoutGrid, LayoutList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import AIAssistant from "@/components/AIAssistant";
 
 interface Deal {
   id: string;
@@ -235,6 +236,14 @@ const ExpandedDeals = () => {
           </div>
         )}
       </div>
+      
+      <AIAssistant 
+        onNavigateToHome={() => navigate('/')}
+        onNavigateToDashboard={() => navigate('/dashboard')}
+        onNavigateToContacts={() => navigate('/contacts')}
+        onNavigateToDeals={() => navigate('/deals')}
+        onNavigateToLead={(leadId) => navigate(`/lead/${leadId}`)}
+      />
     </div>
   );
 };
