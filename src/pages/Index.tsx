@@ -34,7 +34,7 @@ const Index = () => {
       
       <main className="px-4 max-w-[1800px] mx-auto">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-[calc(100vh-140px)]"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[minmax(280px,1fr)] max-h-[calc(100vh-120px)]"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}

@@ -69,8 +69,8 @@ const TodaysTasksTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-ai p-4 hover-scale h-full flex flex-col">
-      <h2 className="text-lg font-semibold mb-3">Today's Tasks & Meetings</h2>
+    <div className="glass-tile gradient-ai p-3 hover-scale h-full flex flex-col">
+      <h2 className="text-lg font-semibold mb-2">Today's Tasks & Meetings</h2>
       
       <div className="space-y-2 overflow-auto custom-scrollbar flex-1">
         {tasks.length === 0 ? (

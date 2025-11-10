@@ -121,8 +121,8 @@ const ContactsTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-contacts p-4 hover-scale h-full flex flex-col">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass-tile gradient-contacts p-3 hover-scale h-full flex flex-col">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-lg font-semibold">Contacts</h2>
           <p className="text-xs text-muted-foreground">Updated: {formatLastUpdated()}</p>

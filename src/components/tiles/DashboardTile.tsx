@@ -107,10 +107,10 @@ const DashboardTile = () => {
 
   return (
     <div 
-      className="glass-tile gradient-dashboard p-4 hover-scale h-full flex flex-col cursor-pointer"
+      className="glass-tile gradient-dashboard p-3 hover-scale h-full flex flex-col cursor-pointer"
       onClick={() => navigate('/dashboard')}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-lg font-semibold">Dashboard</h2>
           <p className="text-xs text-muted-foreground">Updated: {formatLastUpdated()}</p>
@@ -148,31 +148,31 @@ const DashboardTile = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className="grid grid-cols-2 gap-2 mb-2">
         {kpis.map((kpi) => (
-          <Card key={kpi.label} className="p-3 bg-white/60 border-white/40">
+          <Card key={kpi.label} className="p-2 bg-white/60 border-white/40">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">{kpi.label}</p>
-                <p className="text-xl font-bold">{kpi.value}</p>
+                <p className="text-[10px] text-muted-foreground mb-0.5">{kpi.label}</p>
+                <p className="text-lg font-bold">{kpi.value}</p>
               </div>
-              <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+              <kpi.icon className={`h-3.5 w-3.5 ${kpi.color}`} />
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 flex-1">
-        <Card className="p-3 bg-white/60 border-white/40">
-          <h3 className="text-xs font-medium mb-2">Sales Funnel</h3>
-          <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-2 flex-1 overflow-auto custom-scrollbar">
+        <Card className="p-2 bg-white/60 border-white/40 h-fit">
+          <h3 className="text-xs font-medium mb-1.5">Sales Funnel</h3>
+          <div className="space-y-1">
             {[
               { stage: "Lead", value: 60 },
               { stage: "Qualified", value: 45 },
               { stage: "Proposal", value: 30 },
             ].map((stage) => (
               <div key={stage.stage}>
-                <div className="flex justify-between text-xs mb-0.5">
+                <div className="flex justify-between text-[10px] mb-0.5">
                   <span>{stage.stage}</span>
                   <span>{stage.value}%</span>
                 </div>
@@ -187,17 +187,17 @@ const DashboardTile = () => {
           </div>
         </Card>
 
-        <Card className="p-3 bg-white/60 border-white/40">
-          <h3 className="text-xs font-medium mb-2">Revenue</h3>
-          <div className="space-y-2">
+        <Card className="p-2 bg-white/60 border-white/40 h-fit">
+          <h3 className="text-xs font-medium mb-1.5">Revenue</h3>
+          <div className="space-y-1.5">
             {[
               { stage: "Discovery", amount: "$120K" },
               { stage: "Proposal", amount: "$180K" },
               { stage: "Negotiation", amount: "$187K" },
             ].map((stage) => (
               <div key={stage.stage} className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">{stage.stage}</span>
-                <span className="text-sm font-semibold">{stage.amount}</span>
+                <span className="text-[10px] text-muted-foreground">{stage.stage}</span>
+                <span className="text-xs font-semibold">{stage.amount}</span>
               </div>
             ))}
           </div>

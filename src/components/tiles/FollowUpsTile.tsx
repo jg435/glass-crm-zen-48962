@@ -86,8 +86,8 @@ const FollowUpsTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-followups p-4 hover-scale h-full flex flex-col">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass-tile gradient-followups p-3 hover-scale h-full flex flex-col">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">Follow-ups</h2>
         {totalCount > 0 && (
           <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">

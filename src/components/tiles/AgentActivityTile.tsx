@@ -117,8 +117,8 @@ const AgentActivityTile = () => {
   };
 
   return (
-    <div className="glass-tile gradient-success p-4 hover-scale h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="glass-tile gradient-success p-3 hover-scale h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-2">
         <Bot className="h-5 w-5" />
         <h2 className="text-lg font-semibold">Agent Activity</h2>
         {runs.some(r => r.status === 'running') && (
