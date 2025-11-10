@@ -6,6 +6,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { WakeWordDetector } from "@/utils/WakeWordDetection";
 import { fillFormFields, clickDialogButton, type FormFillAction } from "@/utils/form-filler";
 
+/**
+ * AI ASSISTANT - Frontend Voice Interface
+ * 
+ * This component is the user-facing part of the Master Orchestrator system.
+ * 
+ * FLOW:
+ * 1. Wake word detection ("Hey CRM") → Activates assistant
+ * 2. Speech recognition → Captures user query
+ * 3. Sends to voice-assistant edge function (Master Orchestrator)
+ * 4. Receives response + UI actions
+ * 5. Executes UI actions (navigate, fill forms, highlight tiles, etc.)
+ * 
+ * INTEGRATION WITH FLOW DIAGRAM:
+ * - This is the "Voice Command Hey CRM" input node
+ * - Connects to Master Orchestrator (voice-assistant edge function)
+ * - Handles UI actions returned from orchestrator
+ * - Provides real-time feedback to user
+ * 
+ * DATABASE ACCESS:
+ * - Frontend: Read-only access for display
+ * - Backend (voice-assistant): Full CRUD through Supabase service role
+ */
+
 interface Message {
   role: "user" | "assistant";
   content: string;

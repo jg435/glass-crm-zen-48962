@@ -1,6 +1,40 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * MASTER ORCHESTRATOR (Gemini 1.5 Pro) - Voice Assistant
+ * 
+ * Flow Architecture (aligned with system diagram):
+ * 
+ * INPUTS:
+ * - Voice Command ("Hey CRM" wake word)
+ * - Live Email Incoming
+ * - Active Meeting Audio  
+ * - Admin Simulate Button
+ * 
+ * ORCHESTRATION:
+ * 1. Master Orchestrator (this function) processes user queries
+ * 2. Routes to specialized agents:
+ *    - Meeting Agent (Outreach, FnCall) → sentiment analysis, manager alerts
+ *    - Footprint Agent (Edit Meeting) → lead updates, form filling
+ *    - Outreach Agent (Drafting) → email campaigns
+ *    - Scheduling Agent (Calendar, AI) → meetings, follow-ups
+ * 
+ * DATABASE ACCESS (Full CRUD):
+ * - leads: Create, Read, Update, Delete
+ * - email_campaigns: Draft, edit, approve, send
+ * - meetings: Schedule, prepare, analyze, complete
+ * - email_replies: Review, respond
+ * - agent_runs: Log all activities
+ * - agent_actions: Track pending actions
+ * 
+ * OUTPUTS:
+ * - Real-time DB updates
+ * - UI actions and highlights
+ * - Manager alerts (RED ALERT when sentiment < 6)
+ * - Lovable.dev dashboard sync
+ */
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -21,10 +55,16 @@ serve(async (req) => {
 
     console.log("Processing voice command:", message);
 
-    // Initialize Supabase client to fetch data
+    // Initialize Supabase client with FULL DATABASE ACCESS (CRUD operations)
+    // This personal assistant can read and write to ALL tables for complete CRM control
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    console.log("✓ Database connection established - Full CRUD access enabled");
+
+    // Fetch relevant data from ALL tables (demonstrating full database access)
+    console.log("📊 Fetching data from all tables...");
 
     // Fetch relevant data from database
     const [leadsData, campaignsData, meetingsData, actionsData, emailRepliesData, agentRunsData] = await Promise.all([

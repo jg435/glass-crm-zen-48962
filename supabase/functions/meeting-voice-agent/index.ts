@@ -152,11 +152,13 @@ Guidelines:
 Response format after each exchange:
 [CONFIDENCE: 0.X] [SENTIMENT: positive/neutral/negative]
 Then your verbal response.`,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500
-          }
-        };
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500
+            }
+          };
+          
+          console.log(`Meeting agent joining meeting ${meetingId} with ${lead.name}`);
 
         return new Response(
           JSON.stringify({ 
@@ -254,17 +256,18 @@ Your response:`
           })
           .eq('id', meetingId);
 
-        // Alert manager if confidence is low
-        if (analysis.alertManager.needed || analysis.confidence < 0.5) {
+        // Alert manager if confidence/sentiment is low (< 0.6 = < 6 on 0-10 scale = CRISIS)
+        // This aligns with flow diagram: "Sentiment < 6 (Crisis) → RED ALERT (Manager Summon)"
+        if (analysis.alertManager.needed || analysis.confidence < 0.6) {
           await supabase
             .from('meetings')
             .update({ 
               manager_alert_triggered: true,
-              manager_alert_reason: analysis.alertManager.reason || 'Low confidence in deal closure'
+              manager_alert_reason: analysis.alertManager.reason || '🚨 RED ALERT: Low confidence in deal closure - Manager intervention needed'
             })
             .eq('id', meetingId);
 
-          // Create agent action for manager
+          // Create HIGH PRIORITY agent action for manager summon
           await supabase.from('agent_actions').insert({
             agent_type: 'meeting_voice_agent',
             action_type: 'manager_alert',
@@ -273,11 +276,17 @@ Your response:`
             data: {
               meeting_id: meetingId,
               lead_name: lead.name,
+              company: lead.company,
               confidence: analysis.confidence,
-              reason: analysis.alertManager.reason,
-              summary: `Meeting with ${lead.name} needs attention. Confidence: ${(analysis.confidence * 100).toFixed(0)}%. ${analysis.alertManager.reason}`
+              sentiment: analysis.sentiment,
+              concerns: analysis.concerns,
+              reason: analysis.alertManager.reason || 'Sentiment below threshold',
+              alert_type: 'RED_ALERT',
+              summary: `🚨 RED ALERT: Meeting with ${lead.name} (${lead.company}) requires immediate attention. Sentiment: ${(analysis.confidence * 10).toFixed(1)}/10. ${analysis.alertManager.reason || 'Deal at risk.'}`
             }
           });
+          
+          console.log(`🚨 RED ALERT triggered for meeting ${meetingId} - Manager summon initiated`);
         }
 
         return new Response(
