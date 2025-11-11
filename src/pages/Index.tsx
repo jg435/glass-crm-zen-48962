@@ -6,8 +6,10 @@ import ContactsTile from "@/components/tiles/ContactsTile";
 import DealsTile from "@/components/tiles/DealsTile";
 import FollowUpsTile from "@/components/tiles/FollowUpsTile";
 import CalendarTile from "@/components/tiles/CalendarTile";
-import TodaysTasksTile from "@/components/tiles/TodaysTasksTile";
+import TasksTile from "@/components/tiles/TasksTile";
 import EmailReviewTile from "@/components/tiles/EmailReviewTile";
+import NewLeadsTile from "@/components/tiles/NewLeadsTile";
+import ContactFeedTile from "@/components/tiles/ContactFeedTile";
 import AIAssistant from "@/components/AIAssistant";
 import SettingsModal from "@/components/SettingsModal";
 import LeadGenerationModal from "@/components/LeadGenerationModal";
@@ -22,6 +24,7 @@ const Index = () => {
   const [leadGenOpen, setLeadGenOpen] = useState(false);
   const [emailsOpen, setEmailsOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
+  const [voiceAssistantOpen, setVoiceAssistantOpen] = useState(false);
 
   return (
     <div className="min-h-screen pb-6">
@@ -30,11 +33,12 @@ const Index = () => {
         onAddLeadClick={() => setLeadGenOpen(true)}
         onEmailsClick={() => setEmailsOpen(true)}
         onScheduleClick={() => setMeetingOpen(true)}
+        onMicClick={() => setVoiceAssistantOpen(true)}
       />
       
       <main className="px-4 max-w-[1800px] mx-auto">
         <div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[280px] max-h-[calc(100vh-120px)]"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[400px]"
           style={{
             '--tile-opacity': backgroundImage ? opacity : 1,
           } as React.CSSProperties}
@@ -58,21 +62,31 @@ const Index = () => {
             <FollowUpsTile />
           </div>
           
-          <div className="lg:row-span-1 h-full" data-tile-id="tasks">
-            <TodaysTasksTile />
+          <div data-tile-id="tasks">
+            <TasksTile />
           </div>
           
-          <div className="lg:row-span-1 h-full" data-tile-id="calendar">
+          <div data-tile-id="calendar">
             <CalendarTile />
           </div>
 
-          <div className="lg:col-span-2 lg:row-span-1 h-full" data-tile-id="email-review">
+          <div className="lg:col-span-2" data-tile-id="email-review">
             <EmailReviewTile />
+          </div>
+
+          <div data-tile-id="new-leads">
+            <NewLeadsTile />
+          </div>
+
+          <div data-tile-id="contact-feed">
+            <ContactFeedTile />
           </div>
         </div>
       </main>
 
       <AIAssistant 
+        isOpen={voiceAssistantOpen}
+        onOpenChange={setVoiceAssistantOpen}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenLeadGen={() => setLeadGenOpen(true)}
         onOpenEmails={() => setEmailsOpen(true)}

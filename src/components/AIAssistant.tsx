@@ -42,6 +42,8 @@ interface HighlightedTile {
 }
 
 interface AIAssistantProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onOpenSettings?: () => void;
   onOpenLeadGen?: () => void;
   onOpenEmails?: () => void;
@@ -59,6 +61,8 @@ interface PendingSubmission {
 }
 
 const AIAssistant = ({ 
+  isOpen = false,
+  onOpenChange,
   onOpenSettings, 
   onOpenLeadGen, 
   onOpenEmails, 
@@ -81,63 +85,22 @@ const AIAssistant = ({
   const queryRecognitionRef = useRef<any>(null);
   const isProcessingRef = useRef(false);
 
-  const startWakeWordDetection = () => {
-    if (wakeWordDetectorRef.current || isProcessingRef.current) return;
-    
-    try {
-      console.log('Starting wake word detection...');
-      
-      const handleEndCommand = () => {
-        console.log('End CRM command detected via wake word detector');
-        setIsActive(false);
-        setCurrentMessage("");
-        setUserQuery("");
-        setHighlightedTile(null);
-        setConversationHistory([]);
-        isProcessingRef.current = false;
-        if (wakeWordDetectorRef.current) {
-          wakeWordDetectorRef.current.stop();
-          wakeWordDetectorRef.current = null;
-        }
-        if (queryRecognitionRef.current) {
-          queryRecognitionRef.current.stop();
-          queryRecognitionRef.current = null;
-        }
-      };
-      
-      wakeWordDetectorRef.current = new WakeWordDetector(() => {
-        console.log('Wake word "Hey CRM" detected - listening for query');
-        isProcessingRef.current = true;
-        setAssistantState('active');
-        setIsActive(true);
-        setUserQuery("");
-        setCurrentMessage("");
-        
-        // Stop wake word detection while processing query
-        if (wakeWordDetectorRef.current) {
-          wakeWordDetectorRef.current.stop();
-          wakeWordDetectorRef.current = null;
-        }
-        
-        startQueryRecognition();
-      }, handleEndCommand);
-      
-      wakeWordDetectorRef.current.start();
-      setAssistantState('listening-wake');
-    } catch (error) {
-      console.error('Error starting wake word detection:', error);
-      toast({
-        title: "Error",
-        description: "Voice activation not supported in your browser",
-        variant: "destructive"
-      });
+  // Handle controlled open state
+  useEffect(() => {
+    if (isOpen && !isProcessingRef.current) {
+      console.log('Voice assistant opened via mic button');
+      isProcessingRef.current = true;
+      setAssistantState('active');
+      setIsActive(true);
+      setUserQuery("");
+      setCurrentMessage("");
+      startQueryRecognition();
+    } else if (!isOpen && isProcessingRef.current) {
+      handleDismiss();
     }
-  };
+  }, [isOpen]);
 
   useEffect(() => {
-    // Start listening for wake word immediately on mount
-    startWakeWordDetection();
-
     return () => {
       if (wakeWordDetectorRef.current) {
         wakeWordDetectorRef.current.stop();
@@ -221,7 +184,7 @@ const AIAssistant = ({
         setConversationHistory([]);
         isProcessingRef.current = false;
         setAssistantState('listening-wake');
-        setTimeout(() => startWakeWordDetection(), 500);
+        onOpenChange?.(false);
       }, 2000);
       return;
     }
@@ -244,7 +207,7 @@ const AIAssistant = ({
             setHighlightedTile(null);
             isProcessingRef.current = false;
             setAssistantState('listening-wake');
-            setTimeout(() => startWakeWordDetection(), 500);
+            onOpenChange?.(false);
           }, 2000);
         } else {
           setCurrentMessage("Failed to submit form. Please try manually.");
@@ -656,7 +619,7 @@ const AIAssistant = ({
   };
 
   const handleDismiss = () => {
-    console.log('Dismissing overlay, restarting wake word detection');
+    console.log('Dismissing voice assistant');
     setIsActive(false);
     setCurrentMessage("");
     setUserQuery("");
@@ -669,38 +632,29 @@ const AIAssistant = ({
       queryRecognitionRef.current = null;
     }
     
-    // Restart wake word detection
-    setAssistantState('listening-wake');
-    setTimeout(() => {
-      startWakeWordDetection();
-    }, 500);
+    // Close via parent
+    onOpenChange?.(false);
   };
 
   const getStateIndicator = () => {
     switch (assistantState) {
-      case 'listening-wake':
-        return { color: 'bg-blue-500', text: 'Say "Hey CRM" to activate', pulse: true };
       case 'active':
-        return { color: 'bg-green-500', text: 'Listening... (Say "End CRM" to stop)', pulse: true };
+        return { color: 'bg-green-500', text: 'Listening...', pulse: true };
       case 'processing':
-        return { color: 'bg-yellow-500', text: 'Processing... (Say "End CRM" to stop)', pulse: false };
+        return { color: 'bg-yellow-500', text: 'Processing...', pulse: false };
+      default:
+        return { color: 'bg-blue-500', text: 'Ready', pulse: false };
     }
   };
 
   const stateIndicator = getStateIndicator();
 
+  if (!isActive) return null;
+
   return (
     <>
-      {/* Status Indicator - Always visible */}
-      <div className="fixed top-24 right-6 z-40 glass-tile px-4 py-2 rounded-full">
-        <div className="flex items-center gap-2">
-          <div className={`h-2 w-2 rounded-full ${stateIndicator.color} ${stateIndicator.pulse ? 'animate-pulse' : ''}`} />
-          <span className="text-xs font-medium">{stateIndicator.text}</span>
-        </div>
-      </div>
-
       {/* Fullscreen Overlay */}
-      {isActive && (
+      {(
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="absolute inset-0 flex items-center justify-center p-8">
             <div className="max-w-4xl w-full space-y-6 max-h-screen overflow-y-auto">

@@ -24,19 +24,17 @@ interface Deal {
 type ViewMode = 'cards' | 'kanban';
 
 const stages = [
-  { id: 'prospect', name: 'Prospect', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20' },
+  { id: 'prospecting', name: 'Prospecting', color: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20' },
   { id: 'qualified', name: 'Qualified', color: 'bg-blue-500/10 text-blue-700 border-blue-500/20' },
   { id: 'proposal', name: 'Proposal', color: 'bg-orange-500/10 text-orange-700 border-orange-500/20' },
   { id: 'negotiation', name: 'Negotiation', color: 'bg-purple-500/10 text-purple-700 border-purple-500/20' },
-  { id: 'closed_won', name: 'Closed Won', color: 'bg-success text-success-foreground' },
-  { id: 'closed_lost', name: 'Closed Lost', color: 'bg-destructive/10 text-destructive border-destructive/20' },
 ];
 
 const DealsTile = () => {
   const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [newDealIds, setNewDealIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -195,7 +193,7 @@ const DealsTile = () => {
   );
 
   return (
-    <div className="glass-tile gradient-deals p-3 hover-scale h-full flex flex-col">
+    <div className="glass-tile gradient-deals p-3 hover-scale h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Deals Pipeline</h2>

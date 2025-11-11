@@ -11,6 +11,7 @@ interface Meeting {
   title: string;
   scheduled_at: string;
   lead_id: string;
+  google_meet_link: string | null;
 }
 
 interface DealEvent {
@@ -123,8 +124,8 @@ const CalendarTile = () => {
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
   return (
-    <div className="glass-tile gradient-calendar p-3 hover-scale h-full flex flex-col">
-      <h2 className="text-lg font-semibold mb-2">Calendar</h2>
+    <div className="glass-tile gradient-calendar p-3 hover-scale h-[400px] flex flex-col">
+      <h2 className="text-lg font-semibold mb-2">Upcoming Meetings</h2>
       
       <Card className="p-3 bg-white/60 border-white/40 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-3">
@@ -181,14 +182,24 @@ const CalendarTile = () => {
             ) : (
               <>
                 {upcomingMeetings.map((meeting) => (
-                  <div key={meeting.id} className="flex justify-between text-xs items-center">
-                    <span className="text-muted-foreground">
-                      {format(new Date(meeting.scheduled_at), 'MMM d')}
+                  <div key={meeting.id} className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground flex-shrink-0">
+                      {format(new Date(meeting.scheduled_at), 'MMM d h:mm a')}
                     </span>
-                    <span className="font-medium truncate ml-2">{meeting.title}</span>
-                    <Badge variant="secondary" className="ml-1 text-[10px] h-4">Meet</Badge>
+                    <span className="font-medium truncate flex-1">{meeting.title}</span>
+                    {meeting.google_meet_link && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-5 px-2 text-[10px]"
+                        onClick={() => window.open(meeting.google_meet_link!, '_blank')}
+                      >
+                        Join
+                      </Button>
+                    )}
                   </div>
                 ))}
+
                 {upcomingDeals.map((deal) => (
                   <div key={deal.id} className="flex justify-between text-xs items-center">
                     <span className="text-muted-foreground">

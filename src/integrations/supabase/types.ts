@@ -515,6 +515,47 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          created_at: string | null
+          deal_id: string | null
+          due_date: string | null
+          id: string
+          is_complete: boolean | null
+          priority: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deal_id?: string | null
+          due_date?: string | null
+          id?: string
+          is_complete?: boolean | null
+          priority: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deal_id?: string | null
+          due_date?: string | null
+          id?: string
+          is_complete?: boolean | null
+          priority?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ui_state: {
         Row: {
           active_tile: string | null
